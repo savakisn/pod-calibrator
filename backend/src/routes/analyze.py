@@ -34,17 +34,17 @@ def analyze_deck_sync(decklist: str) -> dict:
             total_cmc += cmc * qty
             card_count_processed += qty
 
-            mana_val = int(cmc)
-            mana_curve[str(mana_val)] = mana_curve.get(str(mana_val), 0) + qty
+            type_line = parsed.get("type_line") or ""
+            if "land" not in type_line.lower():
+                mana_val = int(cmc)
+                mana_curve[str(mana_val)] = mana_curve.get(str(mana_val), 0) + qty
 
             for color in parsed.get("colors") or []:
                 colors_count[color] = colors_count.get(color, 0) + qty
 
-            type_line = parsed.get("type_line") or ""
-            card_type_parts = type_line.split("(")[0].strip().split()
-            for card_type in card_type_parts:
-                card_type_clean = card_type.lower()
-                type_count[card_type_clean] = type_count.get(card_type_clean, 0) + qty
+            primary_type = type_line.split("(")[0].strip().split()[0] if type_line.split("(")[0].strip().split() else ""
+            if primary_type:
+                type_count[primary_type.lower()] = type_count.get(primary_type.lower(), 0) + qty
         else:
             card = {"name": card_name, "quantity": qty}
             cards_data.append(card)
