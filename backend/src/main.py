@@ -1,23 +1,24 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from .routes import analyze
+import json
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from .routes.analyze import analyze_deck_sync
 
-app = FastAPI()
+app = Flask(__name__)
+CORS(app)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(analyze.router, prefix="/api")
-
-@app.get("/health")
+@app.route("/health", methods=["GET"])
 def health():
-    return {"status": "ok"}
+    return jsonify({"status": "ok"})
+
+@app.route("/api/analyze", methods=["POST"])
+def analyze():
+    try:
+        data = request.get_json()
+        decklist = data.get("decklist", "")
+        result = analyze_deck_sync(decklist)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=8000, debug=True)

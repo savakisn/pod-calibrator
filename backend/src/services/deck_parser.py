@@ -1,7 +1,7 @@
 import re
-from typing import list, tuple
+from typing import List, Tuple
 
-def parse_moxfield_decklist(decklist: str) -> tuple[list[tuple[int, str]], str]:
+def parse_moxfield_decklist(decklist: str) -> Tuple[List[Tuple[int, str]], str]:
     """Parse Moxfield format. Returns (cards, commander)
 
     Format: quantity card name
@@ -36,7 +36,7 @@ def parse_moxfield_decklist(decklist: str) -> tuple[list[tuple[int, str]], str]:
 
     return cards, commander
 
-def extract_unique_cards(cards: list[tuple[int, str]]) -> list[str]:
+def extract_unique_cards(cards: List[Tuple[int, str]]) -> List[str]:
     """Get unique card names from card list."""
     seen = set()
     unique = []

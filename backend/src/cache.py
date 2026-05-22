@@ -1,9 +1,9 @@
 import time
-from typing import Any, Optional
+from typing import Any, Optional, Dict, Tuple
 
 class Cache:
     def __init__(self):
-        self.data: dict[str, tuple[Any, float]] = {}
+        self.data: Dict[str, Tuple[Any, float]] = {}
         self.ttl = 86400  # 24 hours
 
     def get(self, key: str) -> Optional[Any]:
