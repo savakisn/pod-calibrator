@@ -11,15 +11,15 @@ def fetch_card_sync(name: str) -> Optional[Dict]:
 
     cache_key = f"card:{name}"
     cached = cache.get(cache_key)
-    if cached:
-        return cached
+    if cached is not None:
+        return cached if cached != "NOT_FOUND" else None
 
     try:
         with httpx.Client() as client:
-            # Rate limit: 100ms between requests (max 10 req/sec)
+            # Rate limit: 200ms between requests (safe margin below 10 req/sec)
             elapsed = time.time() - _last_request_time
-            if elapsed < 0.1:
-                time.sleep(0.1 - elapsed)
+            if elapsed < 0.2:
+                time.sleep(0.2 - elapsed)
 
             # Try exact match first
             url = f"{SCRYFALL_API}/cards/named?exact={name}"
@@ -29,11 +29,14 @@ def fetch_card_sync(name: str) -> Optional[Dict]:
                 data = resp.json()
                 cache.set(cache_key, data)
                 return data
+            elif resp.status_code == 429:
+                print(f"Rate limited fetching {name}: {resp.status_code}")
+                return None
 
             # Rate limit before second request
             elapsed = time.time() - _last_request_time
-            if elapsed < 0.1:
-                time.sleep(0.1 - elapsed)
+            if elapsed < 0.2:
+                time.sleep(0.2 - elapsed)
 
             # Fall back to fuzzy match if exact fails
             url = f"{SCRYFALL_API}/cards/named?fuzzy={name}"
@@ -43,9 +46,14 @@ def fetch_card_sync(name: str) -> Optional[Dict]:
                 data = resp.json()
                 cache.set(cache_key, data)
                 return data
+            elif resp.status_code == 429:
+                print(f"Rate limited fetching {name} (fuzzy): {resp.status_code}")
+                return None
     except Exception as e:
         print(f"Error fetching {name}: {e}")
 
+    # Cache the fact that this card wasn't found
+    cache.set(cache_key, "NOT_FOUND")
     return None
 
 def parse_card_data(card: Dict) -> Dict:
