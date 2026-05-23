@@ -1,10 +1,14 @@
 import httpx
+import time
 from typing import Optional, Dict
 from ..cache import cache
 
 SCRYFALL_API = "https://api.scryfall.com"
+_last_request_time = 0.0
 
 def fetch_card_sync(name: str) -> Optional[Dict]:
+    global _last_request_time
+
     cache_key = f"card:{name}"
     cached = cache.get(cache_key)
     if cached:
@@ -12,7 +16,28 @@ def fetch_card_sync(name: str) -> Optional[Dict]:
 
     try:
         with httpx.Client() as client:
+            # Rate limit: 100ms between requests (max 10 req/sec)
+            elapsed = time.time() - _last_request_time
+            if elapsed < 0.1:
+                time.sleep(0.1 - elapsed)
+
+            # Try exact match first
             url = f"{SCRYFALL_API}/cards/named?exact={name}"
+            _last_request_time = time.time()
+            resp = client.get(url)
+            if resp.status_code == 200:
+                data = resp.json()
+                cache.set(cache_key, data)
+                return data
+
+            # Rate limit before second request
+            elapsed = time.time() - _last_request_time
+            if elapsed < 0.1:
+                time.sleep(0.1 - elapsed)
+
+            # Fall back to fuzzy match if exact fails
+            url = f"{SCRYFALL_API}/cards/named?fuzzy={name}"
+            _last_request_time = time.time()
             resp = client.get(url)
             if resp.status_code == 200:
                 data = resp.json()
