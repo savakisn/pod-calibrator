@@ -42,7 +42,23 @@ def analyze_deck_sync(decklist: str) -> dict:
             for color in parsed.get("colors") or []:
                 colors_count[color] = colors_count.get(color, 0) + qty
 
-            primary_type = type_line.split("(")[0].strip().split()[0] if type_line.split("(")[0].strip().split() else ""
+            land_color_map = {
+                "mountain": "red",
+                "forest": "green",
+                "island": "blue",
+                "swamp": "black",
+                "plains": "white",
+            }
+            if "basic land" in type_line.lower():
+                land_subtype = type_line.split("—")[-1].strip().split()[0].lower() if "—" in type_line else ""
+                color = land_color_map.get(land_subtype)
+                if color:
+                    colors_count[color] = colors_count.get(color, 0) + qty
+
+            supertypes = {"basic", "legendary", "snow", "world"}
+            type_part = type_line.split("—")[0].split("(")[0].split("//")[0].strip()
+            type_words = [w for w in type_part.split() if w.lower() not in supertypes]
+            primary_type = type_words[0] if type_words else ""
             if primary_type:
                 type_count[primary_type.lower()] = type_count.get(primary_type.lower(), 0) + qty
         else:
