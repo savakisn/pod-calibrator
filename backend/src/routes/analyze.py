@@ -1,11 +1,15 @@
 import httpx
 from ..services.deck_parser import parse_moxfield_decklist
-from ..services.scryfall_client import fetch_card_sync, parse_card_data
+from ..services.scryfall_client import fetch_cards_batch, parse_card_data
 
 def analyze_deck_sync(decklist: str) -> dict:
     cards_list, commander_name = parse_moxfield_decklist(decklist)
 
     total_cards = sum(qty for qty, _ in cards_list)
+
+    # Fetch all cards in batches from Scryfall (max 75 per request)
+    card_names = [name for _, name in cards_list]
+    scryfall_results = fetch_cards_batch(card_names)
 
     cards_data = []
     commander = None
@@ -15,8 +19,7 @@ def analyze_deck_sync(decklist: str) -> dict:
     total_cmc = 0
     card_count_processed = 0
 
-    for qty, card_name in cards_list:
-        scryfall_data = fetch_card_sync(card_name)
+    for (qty, card_name), scryfall_data in zip(cards_list, scryfall_results):
 
         if scryfall_data:
             parsed = parse_card_data(scryfall_data)
@@ -35,7 +38,7 @@ def analyze_deck_sync(decklist: str) -> dict:
             card_count_processed += qty
 
             type_line = parsed.get("type_line") or ""
-            if "land" not in type_line.lower():
+            if type_line and "land" not in type_line.lower():
                 mana_val = int(cmc)
                 mana_curve[str(mana_val)] = mana_curve.get(str(mana_val), 0) + qty
 
