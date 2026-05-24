@@ -22,19 +22,27 @@ def fetch_cards_batch(card_names: List[str]) -> List[Optional[Dict]]:
         batch_end = min(batch_start + 75, len(card_names))
         batch_names = card_names[batch_start:batch_end]
 
-        # Check cache first
-        batch_to_fetch = []
-        fetch_indices = []
+        # Build mapping of unique card names to all their indices in this batch
+        name_to_indices = {}
+        unique_names_to_fetch = []
+
         for i, name in enumerate(batch_names):
             cache_key = f"card:{name}"
             cached = cache.get(cache_key)
             if cached:
+                # Replicate cached result to all indices with this name
+                if name not in name_to_indices:
+                    name_to_indices[name] = []
+                name_to_indices[name].append((batch_start + i, cached))
                 results[batch_start + i] = cached
             else:
-                batch_to_fetch.append({"name": name, "fuzzy": name})
-                fetch_indices.append(batch_start + i)
+                # Track unique names to fetch
+                if name not in name_to_indices:
+                    name_to_indices[name] = []
+                    unique_names_to_fetch.append({"name": name, "fuzzy": name})
+                name_to_indices[name].append(batch_start + i)
 
-        if not batch_to_fetch:
+        if not unique_names_to_fetch:
             continue
 
         try:
@@ -46,18 +54,23 @@ def fetch_cards_batch(card_names: List[str]) -> List[Optional[Dict]]:
 
                 _last_request_time = time.time()
                 url = f"{SCRYFALL_API}/cards/collection"
-                resp = client.post(url, json={"identifiers": batch_to_fetch})
+                resp = client.post(url, json={"identifiers": unique_names_to_fetch})
 
                 if resp.status_code == 200:
                     data = resp.json()
                     cards = data.get("data", [])
 
-                    # Map results back to original indices
-                    for card, orig_idx in zip(cards, fetch_indices):
-                        results[orig_idx] = card
-                        # Cache the result
-                        card_name = batch_names[orig_idx - batch_start]
-                        cache.set(f"card:{card_name}", card)
+                    # Map each fetched card to all indices where it appears
+                    for card in cards:
+                        card_name = card.get("name")
+                        if card_name in name_to_indices:
+                            # Replicate this card to all indices with this name
+                            for idx in name_to_indices[card_name]:
+                                if isinstance(idx, tuple):  # Already cached, skip
+                                    continue
+                                results[idx] = card
+                            # Cache it
+                            cache.set(f"card:{card_name}", card)
                 elif resp.status_code == 429:
                     print(f"Rate limited on batch request")
         except Exception as e:
@@ -65,7 +78,7 @@ def fetch_cards_batch(card_names: List[str]) -> List[Optional[Dict]]:
 
     return results
 
-def fetch_card_sync(name: str) -> Optional[Dict]:
+def fetch_card_sync(name: str, retry_count: int = 0, max_retries: int = 2) -> Optional[Dict]:
     global _last_request_time
 
     cache_key = f"card:{name}"
@@ -74,12 +87,11 @@ def fetch_card_sync(name: str) -> Optional[Dict]:
         return cached
 
     try:
-        import sys
         with httpx.Client() as client:
-            # Rate limit: 200ms between requests (safe margin below 10 req/sec)
+            # Rate limit: 100ms between requests (same as batch)
             elapsed = time.time() - _last_request_time
-            if elapsed < 0.2:
-                time.sleep(0.2 - elapsed)
+            if elapsed < 0.1:
+                time.sleep(0.1 - elapsed)
 
             # Try exact match first
             url = f"{SCRYFALL_API}/cards/named?exact={name}"
@@ -90,13 +102,17 @@ def fetch_card_sync(name: str) -> Optional[Dict]:
                 cache.set(cache_key, data)
                 return data
             elif resp.status_code == 429:
-                print(f"Rate limited fetching {name}: {resp.status_code}")
+                # Retry with exponential backoff on rate limit
+                if retry_count < max_retries:
+                    wait_time = 0.5 * (2 ** retry_count)
+                    time.sleep(wait_time)
+                    return fetch_card_sync(name, retry_count + 1, max_retries)
                 return None
 
             # Rate limit before second request
             elapsed = time.time() - _last_request_time
-            if elapsed < 0.2:
-                time.sleep(0.2 - elapsed)
+            if elapsed < 0.1:
+                time.sleep(0.1 - elapsed)
 
             # Fall back to fuzzy match if exact fails
             url = f"{SCRYFALL_API}/cards/named?fuzzy={name}"
@@ -107,16 +123,20 @@ def fetch_card_sync(name: str) -> Optional[Dict]:
                 cache.set(cache_key, data)
                 return data
             elif resp.status_code == 429:
-                print(f"Rate limited fetching {name} (fuzzy): {resp.status_code}")
+                # Retry with exponential backoff on rate limit
+                if retry_count < max_retries:
+                    wait_time = 0.5 * (2 ** retry_count)
+                    time.sleep(wait_time)
+                    return fetch_card_sync(name, retry_count + 1, max_retries)
                 return None
     except Exception as e:
         print(f"Error fetching {name}: {e}")
 
-    # Don't cache failures - they might be due to rate limiting
     return None
 
 def parse_card_data(card: Dict) -> Dict:
     colors = card.get("colors", [])
+    color_identity = card.get("color_identity", [])
     color_map = {
         "W": "white",
         "U": "blue",
@@ -131,6 +151,7 @@ def parse_card_data(card: Dict) -> Dict:
         "mana_cost": card.get("mana_cost"),
         "cmc": card.get("cmc", 0),
         "colors": [color_map.get(c, c) for c in colors],
+        "color_identity": [color_map.get(c, c) for c in color_identity],
         "type_line": card.get("type_line"),
         "oracle_text": card.get("oracle_text", ""),
         "image_uris": card.get("image_uris"),
