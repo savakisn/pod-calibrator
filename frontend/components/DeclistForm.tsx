@@ -57,13 +57,13 @@ export default function DeclistForm({ onSubmitUrl, onSubmitText, loading }: Form
         {mode === 'url' ? (
           <>
             <label className="block text-sm font-medium mb-2">
-              Moxfield URL
+              Deck URL (Moxfield or Archidekt)
             </label>
             <input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://moxfield.com/decks/..."
+              placeholder="https://moxfield.com/decks/... or https://archidekt.com/decks/..."
               className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={loading}
             />

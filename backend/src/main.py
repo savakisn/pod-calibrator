@@ -2,7 +2,7 @@ import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from .routes.analyze import analyze_deck_sync
-from .routes.import_deck import analyze_from_moxfield
+from .routes.import_deck import analyze_from_url
 
 app = Flask(__name__)
 CORS(app)
@@ -21,12 +21,12 @@ def analyze():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@app.route("/api/import/moxfield", methods=["POST"])
-def import_moxfield():
+@app.route("/api/import", methods=["POST"])
+def import_deck():
     try:
         data = request.get_json()
         url = data.get("url", "")
-        result = analyze_from_moxfield(url)
+        result = analyze_from_url(url)
         return jsonify(result)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

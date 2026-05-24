@@ -2,91 +2,51 @@ import re
 import httpx
 from typing import Optional
 
-MOXFIELD_API = "https://api2.moxfield.com/v2/decks/all"
 MOXFIELD_HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "application/json",
 }
 
-
-def extract_moxfield_id(url: str) -> Optional[str]:
-    match = re.search(r"moxfield\.com/decks/([A-Za-z0-9_-]+)", url)
-    return match.group(1) if match else None
-
-
-def fetch_moxfield_deck(deck_id: str) -> dict:
-    with httpx.Client(timeout=15) as client:
-        resp = client.get(f"{MOXFIELD_API}/{deck_id}", headers=MOXFIELD_HEADERS)
-        resp.raise_for_status()
-        return resp.json()
+SUPERTYPES = {"basic", "legendary", "snow", "world"}
+MOXFIELD_COLOR_MAP = {"W": "white", "U": "blue", "B": "black", "R": "red", "G": "green", "C": "colorless"}
+ARCHIDEKT_COLOR_MAP = {"White": "white", "Blue": "blue", "Black": "black", "Red": "red", "Green": "green", "Colorless": "colorless"}
 
 
-def moxfield_to_decklist(data: dict) -> str:
-    """Convert Moxfield API response to plain text decklist."""
-    lines = []
-    commanders = data.get("commanders", {})
-    mainboard = data.get("mainboard", {})
-
-    for entry in commanders.values():
-        lines.append(f"{entry['quantity']} {entry['card']['name']}")
-    for entry in mainboard.values():
-        lines.append(f"{entry['quantity']} {entry['card']['name']}")
-
-    return "\n".join(lines)
-
-
-def analyze_from_moxfield(url: str) -> dict:
-    deck_id = extract_moxfield_id(url)
-    if not deck_id:
-        raise ValueError("Invalid Moxfield URL")
-
-    data = fetch_moxfield_deck(deck_id)
-
-    # Build card list directly from Moxfield data (no Scryfall needed)
-    from collections import Counter
-
-    commanders = data.get("commanders", {})
-    mainboard = data.get("mainboard", {})
-    all_entries = list(commanders.values()) + list(mainboard.values())
-
-    total_cards = sum(e["quantity"] for e in all_entries)
+def _build_analysis(entries: list) -> dict:
+    """
+    entries: list of dicts with keys:
+      name, qty, color_identity (list of lowercase color names),
+      cmc, type_line, mana_cost, image_uris, is_commander
+    """
+    total_cards = sum(e["qty"] for e in entries)
     colors_count = {}
     type_count = {}
     mana_curve = {}
-    total_cmc = 0
+    total_cmc = 0.0
     card_count_processed = 0
     cards_data = []
     commander = None
 
-    color_map = {"W": "white", "U": "blue", "B": "black", "R": "red", "G": "green", "C": "colorless"}
-    supertypes = {"basic", "legendary", "snow", "world"}
+    for e in entries:
+        qty = e["qty"]
+        name = e["name"]
+        color_identity = e["color_identity"]
+        cmc = e["cmc"] or 0
+        type_line = e["type_line"] or ""
 
-    commander_names = {e["card"]["name"] for e in commanders.values()}
-
-    for entry in all_entries:
-        qty = entry["quantity"]
-        card = entry["card"]
-        name = card["name"]
-
-        color_identity = [color_map.get(c, c) for c in (card.get("color_identity") or [])]
-        cmc = card.get("cmc", 0) or 0
-        type_line = card.get("type_line", "") or ""
-        mana_cost = card.get("mana_cost", "")
-        image_uris = card.get("image_uris")
-
-        cards_data.append({
+        card_out = {
             "name": name,
             "quantity": qty,
             "cmc": cmc,
             "color_identity": color_identity,
-            "colors": [color_map.get(c, c) for c in (card.get("colors") or [])],
             "type_line": type_line,
-            "mana_cost": mana_cost,
-            "image_uris": image_uris,
-        })
+            "mana_cost": e.get("mana_cost", ""),
+            "image_uris": e.get("image_uris"),
+        }
+        cards_data.append(card_out)
 
-        if name in commander_names:
-            commander = cards_data[-1]
+        if e.get("is_commander"):
+            commander = card_out
 
         total_cmc += cmc * qty
         card_count_processed += qty
@@ -97,12 +57,13 @@ def analyze_from_moxfield(url: str) -> dict:
         else:
             colors_count["colorless"] = colors_count.get("colorless", 0) + qty
 
-        if "land" not in type_line.lower():
+        is_land = "land" in type_line.lower()
+        if not is_land:
             mana_val = str(int(cmc))
             mana_curve[mana_val] = mana_curve.get(mana_val, 0) + qty
 
         type_part = type_line.split("—")[0].split("(")[0].split("//")[0].strip()
-        type_words = [w for w in type_part.split() if w.lower() not in supertypes]
+        type_words = [w for w in type_part.split() if w.lower() not in SUPERTYPES]
         primary_type = type_words[0] if type_words else ""
         if primary_type:
             type_count[primary_type.lower()] = type_count.get(primary_type.lower(), 0) + qty
@@ -124,3 +85,109 @@ def analyze_from_moxfield(url: str) -> dict:
         "win_conditions": [],
         "speed": None,
     }
+
+
+# --- Moxfield ---
+
+def _extract_moxfield_id(url: str) -> Optional[str]:
+    match = re.search(r"moxfield\.com/decks/([A-Za-z0-9_-]+)", url)
+    return match.group(1) if match else None
+
+
+def _fetch_moxfield(deck_id: str) -> dict:
+    with httpx.Client(timeout=15) as client:
+        resp = client.get(
+            f"https://api2.moxfield.com/v2/decks/all/{deck_id}",
+            headers=MOXFIELD_HEADERS,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+
+def analyze_from_moxfield(url: str) -> dict:
+    deck_id = _extract_moxfield_id(url)
+    if not deck_id:
+        raise ValueError("Invalid Moxfield URL")
+
+    data = _fetch_moxfield(deck_id)
+    commanders = data.get("commanders", {})
+    mainboard = data.get("mainboard", {})
+    commander_names = {e["card"]["name"] for e in commanders.values()}
+
+    entries = []
+    for entry in list(commanders.values()) + list(mainboard.values()):
+        card = entry["card"]
+        name = card["name"]
+        color_identity = [MOXFIELD_COLOR_MAP.get(c, c.lower()) for c in (card.get("color_identity") or [])]
+        type_line = card.get("type_line", "") or ""
+        entries.append({
+            "name": name,
+            "qty": entry["quantity"],
+            "color_identity": color_identity,
+            "cmc": card.get("cmc", 0) or 0,
+            "type_line": type_line,
+            "mana_cost": card.get("mana_cost", ""),
+            "image_uris": card.get("image_uris"),
+            "is_commander": name in commander_names,
+        })
+
+    return _build_analysis(entries)
+
+
+# --- Archidekt ---
+
+def _extract_archidekt_id(url: str) -> Optional[str]:
+    match = re.search(r"archidekt\.com/decks/(\d+)", url)
+    return match.group(1) if match else None
+
+
+def _fetch_archidekt(deck_id: str) -> dict:
+    with httpx.Client(timeout=15) as client:
+        resp = client.get(
+            f"https://archidekt.com/api/decks/{deck_id}/",
+            headers=MOXFIELD_HEADERS,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+
+def analyze_from_archidekt(url: str) -> dict:
+    deck_id = _extract_archidekt_id(url)
+    if not deck_id:
+        raise ValueError("Invalid Archidekt URL")
+
+    data = _fetch_archidekt(deck_id)
+    entries = []
+
+    for entry in data.get("cards", []):
+        categories = entry.get("categories", [])
+        oracle = entry["card"]["oracleCard"]
+        name = oracle["name"]
+
+        color_identity = [ARCHIDEKT_COLOR_MAP.get(c, c.lower()) for c in (oracle.get("colorIdentity") or [])]
+        types = oracle.get("types", [])
+        supertypes = oracle.get("superTypes", [])
+        type_line = " ".join(supertypes + types)
+
+        entries.append({
+            "name": name,
+            "qty": entry["quantity"],
+            "color_identity": color_identity,
+            "cmc": oracle.get("cmc", 0) or 0,
+            "type_line": type_line,
+            "mana_cost": oracle.get("manaCost", ""),
+            "image_uris": None,
+            "is_commander": "Commander" in categories,
+        })
+
+    return _build_analysis(entries)
+
+
+# --- Generic dispatcher ---
+
+def analyze_from_url(url: str) -> dict:
+    if "moxfield.com" in url:
+        return analyze_from_moxfield(url)
+    if "archidekt.com" in url:
+        return analyze_from_archidekt(url)
+    raise ValueError("Unsupported site. Supported: Moxfield, Archidekt")

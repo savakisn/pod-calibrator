@@ -31,7 +31,7 @@ export default function Home() {
     setLoading(true)
     setError('')
     try {
-      const response = await fetch(`${apiUrl}/api/import/moxfield`, {
+      const response = await fetch(`${apiUrl}/api/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
