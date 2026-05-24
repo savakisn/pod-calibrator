@@ -45,38 +45,12 @@ def analyze_deck_sync(decklist: str) -> dict:
                 mana_val = int(cmc)
                 mana_curve[str(mana_val)] = mana_curve.get(str(mana_val), 0) + qty
 
-            colors = parsed.get("colors") or []
+            # color_identity is correct for Commander (covers lands, activated abilities, etc.)
             color_identity = parsed.get("color_identity") or []
-            has_color = False
-
-            # Use color_identity for lands (includes non-basic lands like Oran-Rief)
-            if "land" in type_line.lower():
+            if color_identity:
                 for color in color_identity:
                     colors_count[color] = colors_count.get(color, 0) + qty
-                    has_color = True
             else:
-                # For non-lands, use mana cost colors
-                for color in colors:
-                    colors_count[color] = colors_count.get(color, 0) + qty
-                    has_color = True
-
-            # Fallback for basic lands without color_identity (shouldn't happen, but safe)
-            if "basic land" in type_line.lower() and not has_color:
-                land_color_map = {
-                    "mountain": "red",
-                    "forest": "green",
-                    "island": "blue",
-                    "swamp": "black",
-                    "plains": "white",
-                }
-                land_subtype = type_line.split("—")[-1].strip().split()[0].lower() if "—" in type_line else ""
-                color = land_color_map.get(land_subtype)
-                if color:
-                    colors_count[color] = colors_count.get(color, 0) + qty
-                    has_color = True
-
-            # Cards with no color contribution should be counted as colorless
-            if not has_color:
                 colors_count["colorless"] = colors_count.get("colorless", 0) + qty
 
             supertypes = {"basic", "legendary", "snow", "world"}

@@ -25,22 +25,38 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleAnalyze = async (decklist: string) => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+  const handleAnalyzeUrl = async (url: string) => {
     setLoading(true)
     setError('')
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${apiUrl}/api/import/moxfield`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to import deck')
+      setAnalysis(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAnalyzeText = async (decklist: string) => {
+    setLoading(true)
+    setError('')
+    try {
       const response = await fetch(`${apiUrl}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ decklist })
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to analyze deck')
-      }
-
       const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to analyze deck')
       setAnalysis(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -61,7 +77,7 @@ export default function Home() {
 
         <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-start">
           <div className="w-full lg:w-1/2">
-            <DeclistForm onSubmit={handleAnalyze} loading={loading} />
+            <DeclistForm onSubmitUrl={handleAnalyzeUrl} onSubmitText={handleAnalyzeText} loading={loading} />
           </div>
 
           <div className="w-full lg:w-1/2">
