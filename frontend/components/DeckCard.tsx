@@ -10,10 +10,8 @@ interface Card {
 }
 
 interface Combo {
-  cards: string[]
   produces: string[]
-  two_card: boolean
-  lines: number
+  lines: string[][]
 }
 
 interface BracketResult {
@@ -111,13 +109,10 @@ export default function DeckCard({ analysis }: DeckCardProps) {
               <div className="space-y-2">
                 {bracket.combos.map((combo, i) => (
                   <div key={i} className="text-sm">
-                    <span className="font-medium">{combo.cards.join(' + ')}</span>
-                    {combo.lines > 1 && (
-                      <span className="opacity-60"> +{combo.lines - 1} more line{combo.lines > 2 ? 's' : ''}</span>
-                    )}
-                    {combo.produces.length > 0 && (
-                      <div className="opacity-75 text-xs mt-0.5">{combo.produces.join(', ')}</div>
-                    )}
+                    <div className="opacity-75 text-xs mb-1">{combo.produces.join(', ')}</div>
+                    {combo.lines.map((cards, j) => (
+                      <div key={j} className="font-medium">{cards.join(' + ')}</div>
+                    ))}
                   </div>
                 ))}
               </div>

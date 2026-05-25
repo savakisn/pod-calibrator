@@ -14,27 +14,19 @@ def _bracket_from_counts(gc_count: int, has_combo: bool, avg_cmc: float, has_mld
     return 5
 
 
-def _dedup_combos(combos_raw: list) -> list:
-    seen = {}
+def _group_combos(combos_raw: list) -> list:
+    """Group combos by what they produce. Each group shows all card combinations."""
+    groups = {}
     for entry in combos_raw:
         combo = entry.get("combo", {})
         cards_used = sorted(u["card"]["name"] for u in combo.get("uses", []))
         produces = sorted(p["feature"]["name"] for p in combo.get("produces", []))
         key = tuple(produces)
-        record = {
-            "cards": cards_used,
-            "produces": list(produces),
-            "two_card": entry.get("definitelyTwoCard", False),
-        }
-        if key not in seen:
-            seen[key] = {"lines": 1, **record}
-        else:
-            seen[key]["lines"] += 1
-            # Keep the shortest card list as the representative
-            if len(cards_used) < len(seen[key]["cards"]):
-                seen[key]["cards"] = cards_used
+        if key not in groups:
+            groups[key] = {"produces": list(produces), "lines": []}
+        groups[key]["lines"].append(cards_used)
 
-    return list(seen.values())
+    return [{"produces": g["produces"], "lines": g["lines"]} for g in groups.values()]
 
 
 def estimate_bracket(commander_names: list[str], main_names: list[str], avg_cmc: float) -> dict:
@@ -60,7 +52,7 @@ def estimate_bracket(commander_names: list[str], main_names: list[str], avg_cmc:
     has_combo = len(combos_raw) > 0
 
     bracket = _bracket_from_counts(len(game_changers), has_combo, avg_cmc, bool(mld), bool(extra_turns))
-    combos = _dedup_combos(combos_raw)
+    combos = _group_combos(combos_raw)
 
     return {
         "bracket": bracket,
