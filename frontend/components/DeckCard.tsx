@@ -12,8 +12,8 @@ interface Card {
 interface Combo {
   cards: string[]
   produces: string[]
-  description: string
   two_card: boolean
+  lines: number
 }
 
 interface BracketResult {
@@ -112,8 +112,11 @@ export default function DeckCard({ analysis }: DeckCardProps) {
                 {bracket.combos.map((combo, i) => (
                   <div key={i} className="text-sm">
                     <span className="font-medium">{combo.cards.join(' + ')}</span>
+                    {combo.lines > 1 && (
+                      <span className="opacity-60"> +{combo.lines - 1} more line{combo.lines > 2 ? 's' : ''}</span>
+                    )}
                     {combo.produces.length > 0 && (
-                      <span className="opacity-75"> ({combo.produces.join(', ')})</span>
+                      <div className="opacity-75 text-xs mt-0.5">{combo.produces.join(', ')}</div>
                     )}
                   </div>
                 ))}

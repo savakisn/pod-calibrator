@@ -1,14 +1,40 @@
 import httpx
 
 SPELLBOOK_API = "https://backend.commanderspellbook.com"
-
-BRACKET_TAG_MAP = {
-    "E": {"base": 1, "label": "Exhibition"},
-    "P": {"base": 3, "label": "Upgraded"},
-    "R": {"base": 4, "label": "Optimized"},
-}
-
 BRACKET_LABELS = {1: "Exhibition", 2: "Core", 3: "Upgraded", 4: "Optimized", 5: "cEDH"}
+
+
+def _bracket_from_counts(gc_count: int, has_combo: bool, avg_cmc: float, has_mld: bool, has_et: bool) -> int:
+    if gc_count == 0 and not has_combo:
+        return 1 if (avg_cmc >= 3.2 and not has_mld and not has_et) else 2
+    if gc_count <= 3:
+        return 3
+    if gc_count <= 6:
+        return 4
+    return 5
+
+
+def _dedup_combos(combos_raw: list) -> list:
+    seen = {}
+    for entry in combos_raw:
+        combo = entry.get("combo", {})
+        cards_used = sorted(u["card"]["name"] for u in combo.get("uses", []))
+        produces = sorted(p["feature"]["name"] for p in combo.get("produces", []))
+        key = tuple(produces)
+        record = {
+            "cards": cards_used,
+            "produces": list(produces),
+            "two_card": entry.get("definitelyTwoCard", False),
+        }
+        if key not in seen:
+            seen[key] = {"lines": 1, **record}
+        else:
+            seen[key]["lines"] += 1
+            # Keep the shortest card list as the representative
+            if len(cards_used) < len(seen[key]["cards"]):
+                seen[key]["cards"] = cards_used
+
+    return list(seen.values())
 
 
 def estimate_bracket(commander_names: list[str], main_names: list[str], avg_cmc: float) -> dict:
@@ -25,7 +51,6 @@ def estimate_bracket(commander_names: list[str], main_names: list[str], avg_cmc:
     except Exception as e:
         return {"error": str(e), "bracket": None}
 
-    tag = data.get("bracketTag", "E")
     cards = data.get("cards", [])
     combos_raw = data.get("combos", [])
 
@@ -34,26 +59,8 @@ def estimate_bracket(commander_names: list[str], main_names: list[str], avg_cmc:
     extra_turns = [c["card"]["name"] for c in cards if c.get("extraTurn")]
     has_combo = len(combos_raw) > 0
 
-    # Map tag to bracket number
-    base = BRACKET_TAG_MAP.get(tag, {}).get("base", 2)
-    if tag == "E":
-        bracket = 1 if avg_cmc >= 3.2 and not mld and not extra_turns else 2
-    elif tag == "R" and has_combo and len(game_changers) >= 6:
-        bracket = 5
-    else:
-        bracket = base
-
-    combos = []
-    for entry in combos_raw:
-        combo = entry.get("combo", {})
-        cards_used = [u["card"]["name"] for u in combo.get("uses", [])]
-        produces = [p["feature"]["name"] for p in combo.get("produces", [])]
-        combos.append({
-            "cards": cards_used,
-            "produces": produces,
-            "description": combo.get("description", ""),
-            "two_card": entry.get("definitelyTwoCard", False),
-        })
+    bracket = _bracket_from_counts(len(game_changers), has_combo, avg_cmc, bool(mld), bool(extra_turns))
+    combos = _dedup_combos(combos_raw)
 
     return {
         "bracket": bracket,
