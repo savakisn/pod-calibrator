@@ -22,6 +22,7 @@ interface BracketResult {
   mass_land_denial: string[]
   extra_turns: string[]
   combos: Combo[]
+  error?: string
 }
 
 interface SpeedResult {
@@ -149,7 +150,12 @@ export default function DeckCard({ analysis }: DeckCardProps) {
       </div>
 
       {/* Bracket */}
-      {bracket && (
+      {bracket?.error && (
+        <div className="border rounded-lg p-3 mb-5 bg-gray-50 border-gray-200 text-gray-500 text-sm">
+          Bracket unavailable (Spellbook offline)
+        </div>
+      )}
+      {bracket && !bracket.error && (
         <div className={`border rounded-lg p-4 mb-5 ${BRACKET_COLORS[bracket.bracket]}`}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xl font-bold">
