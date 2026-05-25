@@ -79,12 +79,11 @@ function CardsByType({ cards }: { cards: Card[] }) {
     if (!groups[t]) groups[t] = []
     groups[t].push(card)
   }
-
   return (
     <div className="space-y-4 text-sm">
       {TYPE_ORDER.filter(t => groups[t]).map(type => (
         <div key={type}>
-          <div className="font-semibold text-xs uppercase text-slate-500 mb-1">
+          <div className="font-semibold text-xs uppercase text-slate-500 tracking-wider mb-1">
             {type} ({groups[type].reduce((s, c) => s + c.quantity, 0)})
           </div>
           <div className="space-y-0.5">
@@ -94,7 +93,7 @@ function CardsByType({ cards }: { cards: Card[] }) {
                 <div key={i} className="flex justify-between">
                   <span className="text-slate-300">{card.quantity > 1 ? `${card.quantity}x ` : ''}{card.name}</span>
                   {card.cmc !== undefined && (
-                    <span className="text-slate-500 ml-2 shrink-0">{card.cmc}</span>
+                    <span className="text-slate-600 ml-2 shrink-0">{card.cmc}</span>
                   )}
                 </div>
               ))}
@@ -106,19 +105,27 @@ function CardsByType({ cards }: { cards: Card[] }) {
 }
 
 const SPEED_COLORS: Record<string, string> = {
-  Turbo: 'bg-red-900/50 border-red-700 text-red-300',
-  Fast: 'bg-orange-900/50 border-orange-700 text-orange-300',
-  Balanced: 'bg-yellow-900/50 border-yellow-700 text-yellow-300',
-  Slow: 'bg-blue-900/50 border-blue-700 text-blue-300',
-  Battlecruiser: 'bg-slate-700 border-slate-600 text-slate-300',
+  Turbo:        'bg-red-900/50 border-red-700 text-red-300',
+  Fast:         'bg-orange-900/50 border-orange-700 text-orange-300',
+  Balanced:     'bg-yellow-900/50 border-yellow-700 text-yellow-300',
+  Slow:         'bg-blue-900/50 border-blue-700 text-blue-300',
+  Battlecruiser:'bg-slate-700 border-slate-600 text-slate-300',
 }
 
-const BRACKET_COLORS: Record<number, string> = {
-  1: 'bg-green-900/40 border-green-700 text-green-300',
-  2: 'bg-blue-900/40 border-blue-700 text-blue-300',
-  3: 'bg-yellow-900/40 border-yellow-700 text-yellow-200',
-  4: 'bg-orange-900/40 border-orange-700 text-orange-300',
-  5: 'bg-red-900/40 border-red-700 text-red-300',
+const BRACKET_BORDER: Record<number, string> = {
+  1: 'border-green-500',
+  2: 'border-blue-500',
+  3: 'border-yellow-500',
+  4: 'border-orange-500',
+  5: 'border-red-500',
+}
+
+const BRACKET_NUM_COLOR: Record<number, string> = {
+  1: 'text-green-400',
+  2: 'text-blue-400',
+  3: 'text-yellow-400',
+  4: 'text-orange-400',
+  5: 'text-red-400',
 }
 
 const COLOR_SYMBOLS: Record<string, string> = {
@@ -126,12 +133,12 @@ const COLOR_SYMBOLS: Record<string, string> = {
 }
 
 const COLOR_BADGE: Record<string, string> = {
-  white: 'bg-amber-50 text-amber-900',
-  blue: 'bg-blue-600 text-white',
-  black: 'bg-slate-600 text-white',
-  red: 'bg-red-600 text-white',
-  green: 'bg-green-600 text-white',
-  colorless: 'bg-slate-500 text-white',
+  white:    'bg-amber-50 text-amber-900',
+  blue:     'bg-blue-600 text-white',
+  black:    'bg-slate-600 text-white',
+  red:      'bg-red-600 text-white',
+  green:    'bg-green-600 text-white',
+  colorless:'bg-slate-500 text-white',
 }
 
 export default function DeckCard({ analysis }: DeckCardProps) {
@@ -159,7 +166,6 @@ export default function DeckCard({ analysis }: DeckCardProps) {
 
   return (
     <>
-      {/* Hidden share card for export */}
       <div style={{ position: 'fixed', left: -9999, top: 0, zIndex: -1 }}>
         <ShareCard ref={shareRef} analysis={analysis} />
       </div>
@@ -167,18 +173,18 @@ export default function DeckCard({ analysis }: DeckCardProps) {
       <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-xl p-6 shadow-2xl">
 
         {/* Header */}
-        <div className="flex items-start justify-between mb-5">
+        <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold text-amber-400 mb-1 truncate">
+            <h2 className="text-3xl font-black text-amber-400 mb-1 leading-tight truncate">
               {analysis.commander?.name || 'Deck'}
             </h2>
-            <p className="text-slate-400 text-sm">
+            <p className="text-slate-500 text-sm">
               {analysis.card_count} cards · avg CMC {analysis.avg_cmc}
             </p>
           </div>
           <button
             onClick={handleExport}
-            className="ml-4 text-xs text-slate-400 hover:text-amber-400 border border-slate-700 hover:border-amber-700 rounded-lg px-3 py-1.5 transition-colors shrink-0"
+            className="ml-4 text-xs text-slate-500 hover:text-amber-400 border border-slate-700 hover:border-amber-700/50 rounded-lg px-3 py-1.5 transition-colors shrink-0"
           >
             Export
           </button>
@@ -187,88 +193,82 @@ export default function DeckCard({ analysis }: DeckCardProps) {
         {/* Speed + Win Conditions */}
         <div className="flex flex-wrap items-center gap-2 mb-5">
           {analysis.speed && (
-            <span className={`text-xs px-2 py-0.5 rounded border font-semibold ${SPEED_COLORS[analysis.speed.label] || ''}`}>
+            <span className={`text-xs px-2 py-0.5 rounded border font-bold tracking-wide ${SPEED_COLORS[analysis.speed.label] || ''}`}>
               {analysis.speed.label}
             </span>
           )}
           {analysis.win_conditions?.map(wc => (
-            <span key={wc} className="text-xs px-2 py-0.5 rounded border font-semibold bg-slate-700 text-slate-200 border-slate-600">
+            <span key={wc} className="text-xs px-2 py-0.5 rounded border font-semibold bg-slate-800 text-slate-300 border-slate-600">
               {wc}
             </span>
           ))}
           {analysis.speed && (
-            <span className="text-xs text-slate-500">
-              {analysis.speed.avg_nonland_cmc} non-land avg · {analysis.speed.ramp_count} ramp
+            <span className="text-xs text-slate-600">
+              {analysis.speed.avg_nonland_cmc} avg · {analysis.speed.ramp_count} ramp
             </span>
           )}
         </div>
 
         {/* Bracket */}
         {bracket?.error && (
-          <div className="border rounded-lg p-3 mb-5 bg-slate-800 border-slate-700 text-slate-500 text-sm">
+          <div className="border-l-4 border-slate-600 pl-4 mb-5 text-slate-500 text-sm py-1">
             Bracket unavailable (Spellbook offline)
           </div>
         )}
         {bracket && !bracket.error && (
-          <div className={`border rounded-lg p-4 mb-5 ${BRACKET_COLORS[bracket.bracket]}`}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xl font-bold">
-                Bracket {bracket.bracket}: {bracket.bracket_label}
+          <div className={`border-l-4 pl-4 mb-5 py-1 ${BRACKET_BORDER[bracket.bracket]}`}>
+            <div className="flex items-baseline gap-3 mb-2">
+              <span className={`text-5xl font-black leading-none ${BRACKET_NUM_COLOR[bracket.bracket]}`}>
+                {bracket.bracket}
               </span>
-              <span className="text-sm font-medium opacity-80">
-                {bracket.game_changer_count} game changer{bracket.game_changer_count !== 1 ? 's' : ''}
-              </span>
+              <div>
+                <div className="text-base font-bold text-slate-200 leading-tight">{bracket.bracket_label}</div>
+                <div className="text-xs text-slate-500">
+                  {bracket.game_changer_count} game changer{bracket.game_changer_count !== 1 ? 's' : ''}
+                </div>
+              </div>
             </div>
-            {bracket.game_changers_found.length > 0 && (
-              <div className="text-sm mt-1 opacity-90">
-                <span className="font-medium">Found: </span>
-                {bracket.game_changers_found.join(', ')}
-              </div>
-            )}
-            {bracket.mass_land_denial.length > 0 && (
-              <div className="text-sm mt-1 opacity-90">
-                <span className="font-medium">MLD: </span>
-                {bracket.mass_land_denial.join(', ')}
-              </div>
-            )}
-            {bracket.extra_turns.length > 0 && (
-              <div className="text-sm mt-1 opacity-90">
-                <span className="font-medium">Extra turns: </span>
-                {bracket.extra_turns.join(', ')}
-              </div>
-            )}
+            <div className="space-y-1 text-sm text-slate-400">
+              {bracket.game_changers_found.length > 0 && (
+                <div><span className="text-slate-500">Found: </span>{bracket.game_changers_found.join(', ')}</div>
+              )}
+              {bracket.mass_land_denial.length > 0 && (
+                <div><span className="text-slate-500">MLD: </span>{bracket.mass_land_denial.join(', ')}</div>
+              )}
+              {bracket.extra_turns.length > 0 && (
+                <div><span className="text-slate-500">Extra turns: </span>{bracket.extra_turns.join(', ')}</div>
+              )}
+            </div>
             {bracket.combos.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-current border-opacity-20">
-                <div className="text-sm font-medium mb-2">
+              <div className="mt-3 pt-3 border-t border-slate-700/50 space-y-2">
+                <div className="text-xs text-slate-500 uppercase tracking-wider">
                   {bracket.combos.length} combo{bracket.combos.length !== 1 ? 's' : ''} detected
                 </div>
-                <div className="space-y-2">
-                  {bracket.combos.map((combo, i) => (
-                    <div key={i} className="text-sm">
-                      <div className="opacity-60 text-xs mb-1">{combo.produces.join(', ')}</div>
-                      {combo.lines.map((cards, j) => (
-                        <div key={j} className="font-medium">{cards.join(' + ')}</div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
+                {bracket.combos.map((combo, i) => (
+                  <div key={i} className="text-sm">
+                    <div className="text-slate-600 text-xs mb-0.5">{combo.produces.join(', ')}</div>
+                    {combo.lines.map((cards, j) => (
+                      <div key={j} className="text-slate-300 font-medium">{cards.join(' + ')}</div>
+                    ))}
+                  </div>
+                ))}
               </div>
             )}
           </div>
         )}
 
-        {/* Interaction Stats */}
+        {/* Interaction Stats — stat line, no boxes */}
         {analysis.interaction && (
-          <div className="mb-5 grid grid-cols-4 gap-2 text-center">
+          <div className="flex mb-5">
             {[
               { label: 'Removal', value: analysis.interaction.removal },
               { label: 'Wipes', value: analysis.interaction.board_wipes },
               { label: 'Counters', value: analysis.interaction.counterspells },
               { label: 'Tutors', value: analysis.interaction.tutors },
-            ].map(({ label, value }) => (
-              <div key={label} className="bg-slate-800 rounded-lg p-3 border border-slate-700/50">
-                <div className="text-xl font-bold text-slate-100">{value}</div>
-                <div className="text-xs text-slate-500 mt-0.5">{label}</div>
+            ].map(({ label, value }, i) => (
+              <div key={label} className={`flex-1 text-center ${i > 0 ? 'border-l border-slate-700' : ''}`}>
+                <div className="text-2xl font-black text-slate-100">{value}</div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider mt-0.5">{label}</div>
               </div>
             ))}
           </div>
@@ -277,10 +277,10 @@ export default function DeckCard({ analysis }: DeckCardProps) {
         {/* Colors + Card Types */}
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <h3 className="font-semibold text-xs uppercase text-slate-500 mb-2">Colors</h3>
+            <h3 className="text-xs uppercase text-slate-600 tracking-wider mb-2">Colors</h3>
             <div className="flex flex-wrap gap-1.5">
               {Object.keys(analysis.colors).map(color => (
-                <span key={color} className={`text-xs font-bold px-2 py-0.5 rounded ${COLOR_BADGE[color] || 'bg-slate-600 text-white'}`}>
+                <span key={color} className={`text-xs font-black px-2 py-0.5 rounded ${COLOR_BADGE[color] || 'bg-slate-600 text-white'}`}>
                   {COLOR_SYMBOLS[color] || color}
                 </span>
               ))}
@@ -289,16 +289,15 @@ export default function DeckCard({ analysis }: DeckCardProps) {
               )}
             </div>
           </div>
-
           <div>
-            <h3 className="font-semibold text-xs uppercase text-slate-500 mb-2">Card Types</h3>
+            <h3 className="text-xs uppercase text-slate-600 tracking-wider mb-2">Card Types</h3>
             <div className="text-sm space-y-1">
               {Object.entries(analysis.card_types)
                 .sort((a, b) => b[1] - a[1])
                 .map(([type, count]) => (
                   <div key={type} className="flex justify-between">
                     <span className="capitalize text-slate-300">{type}</span>
-                    <span className="text-slate-500">{count}</span>
+                    <span className="text-slate-600">{count}</span>
                   </div>
                 ))}
             </div>
@@ -307,7 +306,7 @@ export default function DeckCard({ analysis }: DeckCardProps) {
 
         {/* Mana Curve */}
         <div className="mb-5">
-          <h3 className="font-semibold text-xs uppercase text-slate-500 mb-2">Mana Curve</h3>
+          <h3 className="text-xs uppercase text-slate-600 tracking-wider mb-2">Mana Curve</h3>
           {(() => {
             const BAR_MAX_PX = 64
             const maxCount = Math.max(...Object.values(analysis.mana_curve).map(Number), 1)
@@ -319,9 +318,9 @@ export default function DeckCard({ analysis }: DeckCardProps) {
                   return (
                     <div key={cmc} className="flex-1 flex flex-col items-center">
                       <div style={{ height: BAR_MAX_PX - barH }} />
-                      {count > 0 && <span className="text-xs text-slate-500 leading-none mb-0.5">{count}</span>}
+                      {count > 0 && <span className="text-xs text-slate-600 leading-none mb-0.5">{count}</span>}
                       <div className="w-full bg-amber-500 rounded-t" style={{ height: barH }} />
-                      <span className="text-xs text-slate-500 mt-1">{cmc === 7 ? '7+' : cmc}</span>
+                      <span className="text-xs text-slate-600 mt-1">{cmc === 7 ? '7+' : cmc}</span>
                     </div>
                   )
                 })}
@@ -333,7 +332,7 @@ export default function DeckCard({ analysis }: DeckCardProps) {
         {/* Card list */}
         {analysis.cards.length > 0 && (
           <div className="pt-4 border-t border-slate-800">
-            <h3 className="font-semibold text-xs uppercase text-slate-500 mb-3">Cards</h3>
+            <h3 className="text-xs uppercase text-slate-600 tracking-wider mb-3">Cards</h3>
             <CardsByType cards={analysis.cards} />
           </div>
         )}
