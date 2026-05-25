@@ -42,6 +42,50 @@ interface DeckCardProps {
   analysis: DeckAnalysis | null
 }
 
+const TYPE_ORDER = ['Creature', 'Planeswalker', 'Instant', 'Sorcery', 'Enchantment', 'Artifact', 'Land', 'Other']
+const SUPERTYPES = new Set(['Basic', 'Legendary', 'Snow', 'World'])
+
+function primaryType(type_line: string | undefined): string {
+  if (!type_line) return 'Other'
+  const part = type_line.split('—')[0].split('//')[0].trim()
+  const words = part.split(' ').filter(w => !SUPERTYPES.has(w))
+  const t = words[0] || 'Other'
+  return TYPE_ORDER.includes(t) ? t : 'Other'
+}
+
+function CardsByType({ cards }: { cards: Card[] }) {
+  const groups: Record<string, Card[]> = {}
+  for (const card of cards) {
+    const t = primaryType(card.type_line)
+    if (!groups[t]) groups[t] = []
+    groups[t].push(card)
+  }
+
+  return (
+    <div className="space-y-4 text-sm">
+      {TYPE_ORDER.filter(t => groups[t]).map(type => (
+        <div key={type}>
+          <div className="font-semibold text-xs uppercase text-gray-400 mb-1">
+            {type} ({groups[type].reduce((s, c) => s + c.quantity, 0)})
+          </div>
+          <div className="space-y-0.5">
+            {groups[type]
+              .sort((a, b) => (a.cmc ?? 0) - (b.cmc ?? 0))
+              .map((card, i) => (
+                <div key={i} className="flex justify-between">
+                  <span>{card.quantity > 1 ? `${card.quantity}x ` : ''}{card.name}</span>
+                  {card.cmc !== undefined && (
+                    <span className="text-gray-400 ml-2 shrink-0">{card.cmc}</span>
+                  )}
+                </div>
+              ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 const BRACKET_COLORS: Record<number, string> = {
   1: 'bg-green-100 text-green-800 border-green-300',
   2: 'bg-blue-100 text-blue-800 border-blue-300',
@@ -178,20 +222,11 @@ export default function DeckCard({ analysis }: DeckCardProps) {
         })()}
       </div>
 
-      {/* Card list */}
+      {/* Card list grouped by type */}
       {analysis.cards.length > 0 && (
         <div className="pt-4 border-t">
           <h3 className="font-semibold text-xs uppercase text-gray-500 mb-3">Cards</h3>
-          <div className="space-y-1 max-h-64 overflow-y-auto text-sm">
-            {analysis.cards.map((card, i) => (
-              <div key={i} className="flex justify-between">
-                <span>{card.quantity}x {card.name}</span>
-                {card.cmc !== undefined && (
-                  <span className="text-gray-400">{card.cmc}</span>
-                )}
-              </div>
-            ))}
-          </div>
+          <CardsByType cards={analysis.cards} />
         </div>
       )}
     </div>
