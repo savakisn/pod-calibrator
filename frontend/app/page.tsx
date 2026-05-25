@@ -12,12 +12,10 @@ interface DeckAnalysis {
   colors: Record<string, number>
   card_types: Record<string, number>
   mana_curve: Record<string, number>
+  bracket?: unknown
   detected_combos: unknown[]
-  bracket_score?: number
-  power_label?: string
   precon_match?: string
   win_conditions: string[]
-  speed?: number
 }
 
 export default function Home() {
