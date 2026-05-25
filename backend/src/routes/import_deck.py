@@ -1,6 +1,7 @@
 import re
 import httpx
 from typing import Optional
+from ..services.bracket import score_bracket
 
 MOXFIELD_HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -69,6 +70,7 @@ def _build_analysis(entries: list) -> dict:
             type_count[primary_type.lower()] = type_count.get(primary_type.lower(), 0) + qty
 
     avg_cmc = total_cmc / card_count_processed if card_count_processed > 0 else 0
+    bracket_result = score_bracket(cards_data, avg_cmc)
 
     return {
         "cards": cards_data,
@@ -78,12 +80,10 @@ def _build_analysis(entries: list) -> dict:
         "colors": colors_count,
         "card_types": type_count,
         "mana_curve": mana_curve,
+        "bracket": bracket_result,
         "detected_combos": [],
-        "bracket_score": None,
-        "power_label": None,
         "precon_match": None,
         "win_conditions": [],
-        "speed": None,
     }
 
 
