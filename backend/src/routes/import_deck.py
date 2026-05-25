@@ -4,6 +4,7 @@ from typing import Optional
 from ..services.spellbook import estimate_bracket
 from ..services.speed import analyze_speed
 from ..services.wincon import detect_win_conditions
+from ..services.interaction import analyze_interaction
 
 MOXFIELD_HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -84,6 +85,7 @@ def _build_analysis(entries: list) -> dict:
     speed_result = analyze_speed(cards_data, avg_nonland_cmc)
     cmd_name = next((e["name"] for e in entries if e.get("is_commander")), None)
     win_conditions = detect_win_conditions(cards_data, type_count, bracket_result.get("combos", []), cmd_name)
+    interaction = analyze_interaction(cards_data)
 
     return {
         "cards": cards_data,
@@ -96,6 +98,7 @@ def _build_analysis(entries: list) -> dict:
         "bracket": bracket_result,
         "speed": speed_result,
         "win_conditions": win_conditions,
+        "interaction": interaction,
         "precon_match": None,
     }
 

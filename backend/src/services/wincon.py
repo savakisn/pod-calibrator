@@ -70,6 +70,14 @@ TOKENS = {
     "Saproling Migration", "Fungal Plots", "Spore Flower",
     "Slimefoot, the Stowaway", "Thalisse, Reverent Medium",
     "Ghave, Guru of Spores",
+    # Saproling / fungus
+    "Saproling Cluster", "Utopia Mycon", "Night Soil",
+    "Sporesower Thallid", "Thallid Shell-Dweller", "Thallid Omnivore",
+    "Deathspore Thallid", "Vitaspore Thallid",
+    # Other token engines
+    "Beastmaster Ascension", "Idol of Oblivion", "Sylvan Anthem",
+    "Finale of Glory", "White Sun's Zenith", "Green Sun's Twilight",
+    "Scute Swarm", "Tendershoot Dryad",
 }
 
 LIFEGAIN = {

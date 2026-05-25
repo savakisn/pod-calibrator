@@ -31,6 +31,13 @@ interface SpeedResult {
   ramp_count: number
 }
 
+interface Interaction {
+  removal: number
+  board_wipes: number
+  counterspells: number
+  tutors: number
+}
+
 interface DeckAnalysis {
   cards: Card[]
   commander?: Card
@@ -41,6 +48,7 @@ interface DeckAnalysis {
   mana_curve: Record<string, number>
   bracket?: BracketResult
   speed?: SpeedResult
+  interaction?: Interaction
   detected_combos: unknown[]
   precon_match?: string
   win_conditions: string[]
@@ -200,6 +208,23 @@ export default function DeckCard({ analysis }: DeckCardProps) {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Interaction + Tutors */}
+      {analysis.interaction && (
+        <div className="mb-5 grid grid-cols-4 gap-2 text-center">
+          {[
+            { label: 'Removal', value: analysis.interaction.removal },
+            { label: 'Wipes', value: analysis.interaction.board_wipes },
+            { label: 'Counters', value: analysis.interaction.counterspells },
+            { label: 'Tutors', value: analysis.interaction.tutors },
+          ].map(({ label, value }) => (
+            <div key={label} className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+              <div className="text-lg font-bold">{value}</div>
+              <div className="text-xs text-gray-500">{label}</div>
+            </div>
+          ))}
         </div>
       )}
 
