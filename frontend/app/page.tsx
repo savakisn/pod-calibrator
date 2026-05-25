@@ -73,19 +73,23 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-start">
-          <div className="w-full lg:w-1/2">
+        <div className="flex flex-col gap-8">
+          <div className="w-full max-w-xl mx-auto">
             <DeclistForm onSubmitUrl={handleAnalyzeUrl} onSubmitText={handleAnalyzeText} loading={loading} />
           </div>
 
-          <div className="w-full lg:w-1/2">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4">
-                {error}
+          {(error || analysis) && (
+            <div className="w-full">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4 max-w-xl mx-auto">
+                  {error}
+                </div>
+              )}
+              <div className="flex justify-center">
+                <DeckCard analysis={analysis} />
               </div>
-            )}
-            <DeckCard analysis={analysis} />
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </main>
