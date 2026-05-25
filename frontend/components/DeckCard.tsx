@@ -175,7 +175,7 @@ export default function DeckCard({ analysis }: DeckCardProps) {
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
-            <h2 className="text-3xl font-black text-amber-400 mb-1 leading-tight truncate">
+            <h2 className="text-3xl font-extrabold text-amber-400 mb-1 leading-tight truncate">
               {analysis.commander?.name || 'Deck'}
             </h2>
             <p className="text-slate-500 text-sm">
