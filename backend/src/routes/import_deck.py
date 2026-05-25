@@ -2,6 +2,7 @@ import re
 import httpx
 from typing import Optional
 from ..services.spellbook import estimate_bracket
+from ..services.speed import analyze_speed
 
 MOXFIELD_HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -24,7 +25,9 @@ def _build_analysis(entries: list) -> dict:
     type_count = {}
     mana_curve = {}
     total_cmc = 0.0
+    total_nonland_cmc = 0.0
     card_count_processed = 0
+    nonland_count = 0
     cards_data = []
     commander = None
 
@@ -60,6 +63,8 @@ def _build_analysis(entries: list) -> dict:
 
         is_land = "land" in type_line.lower()
         if not is_land:
+            total_nonland_cmc += cmc * qty
+            nonland_count += qty
             mana_val = str(int(cmc))
             mana_curve[mana_val] = mana_curve.get(mana_val, 0) + qty
 
@@ -70,10 +75,12 @@ def _build_analysis(entries: list) -> dict:
             type_count[primary_type.lower()] = type_count.get(primary_type.lower(), 0) + qty
 
     avg_cmc = total_cmc / card_count_processed if card_count_processed > 0 else 0
+    avg_nonland_cmc = total_nonland_cmc / nonland_count if nonland_count > 0 else 0
 
     commander_names = [e["name"] for e in entries if e.get("is_commander")]
     main_names = [e["name"] for e in entries if not e.get("is_commander")]
     bracket_result = estimate_bracket(commander_names, main_names, avg_cmc)
+    speed_result = analyze_speed(cards_data, avg_nonland_cmc)
 
     return {
         "cards": cards_data,
@@ -84,6 +91,7 @@ def _build_analysis(entries: list) -> dict:
         "card_types": type_count,
         "mana_curve": mana_curve,
         "bracket": bracket_result,
+        "speed": speed_result,
         "precon_match": None,
     }
 

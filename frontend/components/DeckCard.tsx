@@ -24,6 +24,12 @@ interface BracketResult {
   combos: Combo[]
 }
 
+interface SpeedResult {
+  label: string
+  avg_nonland_cmc: number
+  ramp_count: number
+}
+
 interface DeckAnalysis {
   cards: Card[]
   commander?: Card
@@ -33,6 +39,7 @@ interface DeckAnalysis {
   card_types: Record<string, number>
   mana_curve: Record<string, number>
   bracket?: BracketResult
+  speed?: SpeedResult
   detected_combos: unknown[]
   precon_match?: string
   win_conditions: string[]
@@ -86,6 +93,14 @@ function CardsByType({ cards }: { cards: Card[] }) {
   )
 }
 
+const SPEED_COLORS: Record<string, string> = {
+  Turbo: 'bg-red-100 text-red-800 border-red-300',
+  Fast: 'bg-orange-100 text-orange-800 border-orange-300',
+  Midrange: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  Slow: 'bg-blue-100 text-blue-800 border-blue-300',
+  Battlecruiser: 'bg-gray-100 text-gray-700 border-gray-300',
+}
+
 const BRACKET_COLORS: Record<number, string> = {
   1: 'bg-green-100 text-green-800 border-green-300',
   2: 'bg-blue-100 text-blue-800 border-blue-300',
@@ -111,9 +126,19 @@ export default function DeckCard({ analysis }: DeckCardProps) {
         <h2 className="text-2xl font-bold mb-1">
           {analysis.commander?.name || 'Deck'}
         </h2>
-        <p className="text-gray-500 text-sm">
+        <p className="text-gray-500 text-sm mb-2">
           {analysis.card_count} cards · Avg CMC: {analysis.avg_cmc}
         </p>
+        {analysis.speed && (
+          <div className="flex items-center gap-2">
+            <span className={`text-xs px-2 py-0.5 rounded border font-semibold ${SPEED_COLORS[analysis.speed.label] || ''}`}>
+              {analysis.speed.label}
+            </span>
+            <span className="text-xs text-gray-400">
+              non-land avg {analysis.speed.avg_nonland_cmc} · {analysis.speed.ramp_count} ramp
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Bracket */}
