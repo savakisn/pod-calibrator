@@ -3,6 +3,7 @@ import httpx
 from typing import Optional
 from ..services.spellbook import estimate_bracket
 from ..services.speed import analyze_speed
+from ..services.wincon import detect_win_conditions
 
 MOXFIELD_HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -81,6 +82,7 @@ def _build_analysis(entries: list) -> dict:
     main_names = [e["name"] for e in entries if not e.get("is_commander")]
     bracket_result = estimate_bracket(commander_names, main_names, avg_cmc)
     speed_result = analyze_speed(cards_data, avg_nonland_cmc)
+    win_conditions = detect_win_conditions(cards_data, type_count, bracket_result.get("combos", []))
 
     return {
         "cards": cards_data,
@@ -92,6 +94,7 @@ def _build_analysis(entries: list) -> dict:
         "mana_curve": mana_curve,
         "bracket": bracket_result,
         "speed": speed_result,
+        "win_conditions": win_conditions,
         "precon_match": None,
     }
 

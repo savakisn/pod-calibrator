@@ -129,16 +129,23 @@ export default function DeckCard({ analysis }: DeckCardProps) {
         <p className="text-gray-500 text-sm mb-2">
           {analysis.card_count} cards · Avg CMC: {analysis.avg_cmc}
         </p>
-        {analysis.speed && (
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {analysis.speed && (
             <span className={`text-xs px-2 py-0.5 rounded border font-semibold ${SPEED_COLORS[analysis.speed.label] || ''}`}>
               {analysis.speed.label}
             </span>
+          )}
+          {analysis.win_conditions?.map(wc => (
+            <span key={wc} className="text-xs px-2 py-0.5 rounded border font-semibold bg-slate-100 text-slate-700 border-slate-300">
+              {wc}
+            </span>
+          ))}
+          {analysis.speed && (
             <span className="text-xs text-gray-400">
               non-land avg {analysis.speed.avg_nonland_cmc} · {analysis.speed.ramp_count} ramp
             </span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Bracket */}
