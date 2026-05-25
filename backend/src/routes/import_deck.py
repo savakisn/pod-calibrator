@@ -82,7 +82,8 @@ def _build_analysis(entries: list) -> dict:
     main_names = [e["name"] for e in entries if not e.get("is_commander")]
     bracket_result = estimate_bracket(commander_names, main_names, avg_cmc)
     speed_result = analyze_speed(cards_data, avg_nonland_cmc)
-    win_conditions = detect_win_conditions(cards_data, type_count, bracket_result.get("combos", []))
+    cmd_name = next((e["name"] for e in entries if e.get("is_commander")), None)
+    win_conditions = detect_win_conditions(cards_data, type_count, bracket_result.get("combos", []), cmd_name)
 
     return {
         "cards": cards_data,
