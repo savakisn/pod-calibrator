@@ -4,28 +4,14 @@ import { useState } from 'react'
 import DeclistForm from '@/components/DeclistForm'
 import DeckCard from '@/components/DeckCard'
 
-interface DeckAnalysis {
-  cards: unknown[]
-  commander?: unknown
-  card_count: number
-  avg_cmc: number
-  colors: Record<string, number>
-  card_types: Record<string, number>
-  mana_curve: Record<string, number>
-  bracket?: unknown
-  detected_combos: unknown[]
-  precon_match?: string
-  win_conditions: string[]
-}
-
 export default function Home() {
-  const [analysis, setAnalysis] = useState<DeckAnalysis | null>(null)
+  const [analysis, setAnalysis] = useState<unknown>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
-  const handleAnalyzeUrl = async (url: string) => {
+  const handleAnalyze = async (url: string) => {
     setLoading(true)
     setError('')
     try {
@@ -36,25 +22,6 @@ export default function Home() {
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Failed to import deck')
-      setAnalysis(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleAnalyzeText = async (decklist: string) => {
-    setLoading(true)
-    setError('')
-    try {
-      const response = await fetch(`${apiUrl}/api/analyze`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decklist })
-      })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Failed to analyze deck')
       setAnalysis(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -75,7 +42,7 @@ export default function Home() {
 
         <div className="flex flex-col gap-8">
           <div className="w-full max-w-xl mx-auto">
-            <DeclistForm onSubmitUrl={handleAnalyzeUrl} onSubmitText={handleAnalyzeText} loading={loading} />
+            <DeclistForm onSubmit={handleAnalyze} loading={loading} />
           </div>
 
           {(error || analysis) && (

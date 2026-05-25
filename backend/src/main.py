@@ -1,7 +1,5 @@
-import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from .routes.analyze import analyze_deck_sync
 from .routes.import_deck import analyze_from_url
 
 app = Flask(__name__)
@@ -10,16 +8,6 @@ CORS(app)
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok"})
-
-@app.route("/api/analyze", methods=["POST"])
-def analyze():
-    try:
-        data = request.get_json()
-        decklist = data.get("decklist", "")
-        result = analyze_deck_sync(decklist)
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
 
 @app.route("/api/import", methods=["POST"])
 def import_deck():
