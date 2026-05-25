@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import DeclistForm from '@/components/DeclistForm'
-import DeckCard from '@/components/DeckCard'
+import DeckCard, { type DeckAnalysis } from '@/components/DeckCard'
 
 export default function Home() {
-  const [analysis, setAnalysis] = useState<unknown>(null)
+  const [analysis, setAnalysis] = useState<DeckAnalysis | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -31,11 +31,11 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+    <main className="min-h-screen bg-slate-950 p-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-2">Pod Calibrator</h1>
-          <p className="text-gray-600">
+          <h1 className="text-4xl font-bold mb-2 text-amber-400">Pod Calibrator</h1>
+          <p className="text-slate-500">
             Know your deck's power level before you sit down
           </p>
         </div>
@@ -48,7 +48,7 @@ export default function Home() {
           {(error || analysis) && (
             <div className="w-full">
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4 max-w-xl mx-auto">
+                <div className="bg-red-950/50 border border-red-800 text-red-300 p-4 rounded-lg mb-4 max-w-xl mx-auto">
                   {error}
                 </div>
               )}
