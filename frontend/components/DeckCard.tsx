@@ -9,6 +9,13 @@ interface Card {
   image_uris?: Record<string, string>
 }
 
+interface Combo {
+  cards: string[]
+  produces: string[]
+  description: string
+  two_card: boolean
+}
+
 interface BracketResult {
   bracket: number
   bracket_label: string
@@ -16,6 +23,7 @@ interface BracketResult {
   game_changers_found: string[]
   mass_land_denial: string[]
   extra_turns: string[]
+  combos: Combo[]
 }
 
 interface DeckAnalysis {
@@ -71,7 +79,7 @@ export default function DeckCard({ analysis }: DeckCardProps) {
         <div className={`border rounded-lg p-4 mb-5 ${BRACKET_COLORS[bracket.bracket]}`}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xl font-bold">
-              Bracket {bracket.bracket} — {bracket.bracket_label}
+              Bracket {bracket.bracket}: {bracket.bracket_label}
             </span>
             <span className="text-sm font-medium">
               {bracket.game_changer_count} game changer{bracket.game_changer_count !== 1 ? 's' : ''}
@@ -93,6 +101,23 @@ export default function DeckCard({ analysis }: DeckCardProps) {
             <div className="text-sm mt-1">
               <span className="font-medium">Extra turns: </span>
               {bracket.extra_turns.join(', ')}
+            </div>
+          )}
+          {bracket.combos.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-current border-opacity-20">
+              <div className="text-sm font-medium mb-2">
+                {bracket.combos.length} combo{bracket.combos.length !== 1 ? 's' : ''} detected
+              </div>
+              <div className="space-y-2">
+                {bracket.combos.map((combo, i) => (
+                  <div key={i} className="text-sm">
+                    <span className="font-medium">{combo.cards.join(' + ')}</span>
+                    {combo.produces.length > 0 && (
+                      <span className="opacity-75"> ({combo.produces.join(', ')})</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

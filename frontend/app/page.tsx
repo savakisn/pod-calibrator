@@ -69,7 +69,7 @@ export default function Home() {
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-2">Pod Calibrator</h1>
           <p className="text-gray-600">
-            Analyze your Commander deck before you sit down at the table
+            Know your deck's power level before you sit down
           </p>
         </div>
 
