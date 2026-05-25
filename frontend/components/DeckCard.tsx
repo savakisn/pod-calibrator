@@ -133,25 +133,26 @@ export default function DeckCard({ analysis }: DeckCardProps) {
       {/* Mana Curve */}
       <div className="mb-5">
         <h3 className="font-semibold text-xs uppercase text-gray-500 mb-2">Mana Curve</h3>
-        <div className="flex gap-1 h-20 items-end">
-          {[0, 1, 2, 3, 4, 5, 6, 7].map((cmc) => {
-            const count = analysis.mana_curve[String(cmc)] || 0
-            const maxCount = Math.max(...Object.values(analysis.mana_curve).map(Number), 1)
-            const height = (count / maxCount) * 100
-            return (
-              <div key={cmc} className="flex-1 flex flex-col items-center gap-1">
-                {count > 0 && (
-                  <span className="text-xs text-gray-500">{count}</span>
-                )}
-                <div
-                  className="w-full bg-blue-400 rounded-t"
-                  style={{ height: `${height}%`, minHeight: count > 0 ? '4px' : '0' }}
-                />
-                <span className="text-xs text-gray-500">{cmc}</span>
-              </div>
-            )
-          })}
-        </div>
+        {(() => {
+          const BAR_MAX_PX = 64
+          const maxCount = Math.max(...Object.values(analysis.mana_curve).map(Number), 1)
+          return (
+            <div className="flex gap-1">
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((cmc) => {
+                const count = analysis.mana_curve[String(cmc)] || 0
+                const barH = count > 0 ? Math.max(3, Math.round((count / maxCount) * BAR_MAX_PX)) : 0
+                return (
+                  <div key={cmc} className="flex-1 flex flex-col items-center">
+                    <div style={{ height: BAR_MAX_PX - barH }} />
+                    {count > 0 && <span className="text-xs text-gray-400 leading-none mb-0.5">{count}</span>}
+                    <div className="w-full bg-blue-400 rounded-t" style={{ height: barH }} />
+                    <span className="text-xs text-gray-400 mt-1">{cmc === 7 ? '7+' : cmc}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })()}
       </div>
 
       {/* Card list */}
