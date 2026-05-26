@@ -101,11 +101,11 @@ function CardsByType({ cards }: { cards: Card[] }) {
   )
 }
 
-function Tooltip({ children, content }: { children: React.ReactNode; content: React.ReactNode }) {
+function Tooltip({ children, content, compact }: { children: React.ReactNode; content: React.ReactNode; compact?: boolean }) {
   return (
     <div className="relative group inline-block">
       {children}
-      <div className="absolute bottom-full left-0 mb-2 w-64 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none shadow-2xl leading-relaxed">
+      <div className={`absolute bottom-full left-0 mb-2 ${compact ? 'w-auto whitespace-nowrap' : 'w-64'} bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none shadow-2xl leading-relaxed`}>
         {content}
       </div>
     </div>
@@ -226,8 +226,14 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
   const speedCls = SPEED_PALETTE[colorMode]
   const colorBadge = COLOR_BADGE_PALETTE[colorMode]
 
+  const COLOR_ORDER = ['white', 'blue', 'black', 'red', 'green', 'colorless']
   const isColorlessOnly = Object.keys(analysis.colors).every(c => c === 'colorless')
-  const colorKeys = Object.keys(analysis.colors).filter(c => c !== 'colorless' || isColorlessOnly)
+  const colorKeys = COLOR_ORDER.filter(c => c in analysis.colors && (c !== 'colorless' || isColorlessOnly))
+
+  const commanderArt = analysis.commander?.image_uris?.art_crop
+    ?? (analysis.commander?.name
+        ? `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(analysis.commander.name)}&format=image&version=art_crop`
+        : null)
 
   const handleExport = async () => {
     try {
@@ -254,10 +260,10 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-3">
-        {analysis.commander?.image_uris?.art_crop && (
+        {commanderArt && (
           <img
-            src={analysis.commander.image_uris.art_crop}
-            alt={analysis.commander.name}
+            src={commanderArt}
+            alt={analysis.commander?.name}
             className="w-20 h-14 object-cover rounded-lg shrink-0 border border-slate-700"
           />
         )}
@@ -295,7 +301,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
       </div>
 
       {/* Speed + Win Conditions */}
-      <div className="flex flex-wrap items-center gap-2 mb-5">
+      <div className="flex flex-wrap items-center gap-2 mb-7">
         {analysis.speed && (
           <Tooltip content={<><div className="mb-1">{SPEED_DESC[analysis.speed.label]}</div><div className="text-slate-500">avg non-land CMC: {analysis.speed.avg_nonland_cmc} · ramp pieces: {analysis.speed.ramp_count}</div></>}>
             <span className={`text-xs px-2 py-0.5 rounded border font-bold tracking-wide cursor-help ${speedCls[analysis.speed.label] || ''}`}>
@@ -303,11 +309,17 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
             </span>
           </Tooltip>
         )}
-        {analysis.win_conditions?.map(wc => (
-          <Tooltip key={wc} content={WIN_TOOLTIP[wc] ?? wc}>
-            <span className="text-xs px-2 py-0.5 rounded border font-semibold bg-slate-800 text-slate-300 border-slate-600 cursor-help">{wc}</span>
-          </Tooltip>
-        ))}
+        {analysis.win_conditions?.map(wc => {
+          const hasConfirmedCombos = (analysis.bracket?.combos?.length ?? 0) > 0
+          const tooltip = wc === 'Combo'
+            ? (hasConfirmedCombos ? 'Active infinite combo lines detected via Spellbook.' : 'Commander strategy suggests combo potential. No specific lines confirmed by Spellbook.')
+            : (WIN_TOOLTIP[wc] ?? wc)
+          return (
+            <Tooltip key={wc} content={tooltip}>
+              <span className="text-xs px-2 py-0.5 rounded border font-semibold bg-slate-800 text-slate-300 border-slate-600 cursor-help">{wc}</span>
+            </Tooltip>
+          )
+        })}
         {analysis.speed && (
           <span className="text-xs text-slate-600">{analysis.speed.avg_nonland_cmc} avg CMC · {analysis.speed.ramp_count} ramp pieces</span>
         )}
@@ -318,7 +330,9 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
         <div className="border-l-4 border-slate-600 pl-4 mb-5 text-slate-500 text-sm py-1">Bracket unavailable (Spellbook offline)</div>
       )}
       {bracket && !bracket.error && (
-        <div className={`border-l-4 pl-4 mb-5 py-1 ${bracketPalette[bracket.bracket].border}`}>
+        <div className="mb-5">
+          <div className="text-xs text-slate-500 uppercase tracking-wider leading-none mb-1">Bracket</div>
+          <div className={`border-l-4 pl-4 py-1 ${bracketPalette[bracket.bracket].border}`}>
           <div className="flex items-end gap-3 mb-2">
             <span className={`text-5xl font-black leading-none ${bracketPalette[bracket.bracket].text}`}>{bracket.bracket}</span>
             <div>
@@ -344,6 +358,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
               ))}
             </div>
           )}
+          </div>
         </div>
       )}
 
@@ -370,7 +385,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
                 { label: 'Counters', value: analysis.interaction.counterspells, cards: analysis.interaction.counterspell_cards },
                 { label: 'Tutors',   value: analysis.interaction.tutors,        cards: analysis.interaction.tutor_cards },
               ].map(({ label, value, cards }, idx) => (
-                <Tooltip key={label} content={
+                <Tooltip key={label} compact content={
                   cards?.length > 0
                     ? <ul className="space-y-0.5">{cards.map(c => <li key={c}>{c}</li>)}</ul>
                     : `No ${label.toLowerCase()} detected`

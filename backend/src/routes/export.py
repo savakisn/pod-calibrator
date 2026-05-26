@@ -1,5 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
+import httpx
+import urllib.parse
 
 SCALE = 2
 W = 640 * SCALE
@@ -120,11 +122,12 @@ def generate_export_jpeg(analysis, color_mode='default'):
     max_count = max([int(v) for v in mana_curve.values()] + [1])
 
     combos_preview = (bracket_data.get('combos') or []) if bracket_data and not bracket_data.get('error') else []
+    _badge_h = int(11 * SCALE) + 10 * SCALE * 2  # matches draw_badge: font size + 2x pad_y
     h = PAD
     h += 30 * SCALE
     h += 18 * SCALE
     h += 10 * SCALE
-    h += 18 * SCALE
+    h += _badge_h + 10 * SCALE  # badge row advance (was 18*SCALE, now matches actual)
     h += 14 * SCALE
     h += 46 * SCALE
     h += 14 * SCALE
@@ -144,6 +147,25 @@ def generate_export_jpeg(analysis, color_mode='default'):
     img = Image.new('RGB', (W, h), color=BG)
     draw = ImageDraw.Draw(img)
 
+    # Commander art thumbnail
+    ART_W = 90 * SCALE
+    ART_H = 63 * SCALE
+    TEXT_X = PAD
+    commander_data = analysis.get('commander') or {}
+    art_url = (commander_data.get('image_uris') or {}).get('art_crop')
+    if not art_url and commander_data.get('name'):
+        art_url = f"https://api.scryfall.com/cards/named?exact={urllib.parse.quote(commander_data['name'])}&format=image&version=art_crop"
+    if art_url:
+        try:
+            resp = httpx.get(art_url, follow_redirects=True, timeout=6, headers={'User-Agent': 'pod-calibrator/1.0'})
+            resp.raise_for_status()
+            art = Image.open(BytesIO(resp.content)).convert('RGB').resize((ART_W, ART_H), Image.LANCZOS)
+            img.paste(art, (PAD, PAD))
+            draw.rectangle([PAD, PAD, PAD + ART_W, PAD + ART_H], outline=BORDER, width=1)
+            TEXT_X = PAD + ART_W + 10 * SCALE
+        except Exception:
+            pass
+
     f_name        = font(FONT_BOLD,  22)
     f_sub         = font(FONT_REG,   11)
     f_tiny        = font(FONT_REG,    9)
@@ -158,17 +180,21 @@ def generate_export_jpeg(analysis, color_mode='default'):
     y = PAD
 
     # --- HEADER ---
-    commander = analysis.get('commander', {}).get('name', 'Deck')
-    draw.text((PAD, y), commander, font=f_name, fill=GOLD)
+    commander = commander_data.get('name', 'Deck')
+    draw.text((TEXT_X, y), commander, font=f_name, fill=GOLD)
     y += int(f_name.size * 1.3)
 
-    draw.text((PAD, y), f"{analysis['card_count']} cards, avg CMC {analysis['avg_cmc']}", font=f_sub, fill=MUTED)
+    draw.text((TEXT_X, y), f"{analysis['card_count']} cards, avg CMC {analysis['avg_cmc']}", font=f_sub, fill=MUTED)
     y += int(f_sub.size * 1.4)
 
     if analysis.get('speed'):
         spd = analysis['speed']
-        draw.text((PAD, y), f"{spd['avg_nonland_cmc']} non-land avg, {spd['ramp_count']} ramp pieces", font=f_tiny, fill=MUTED)
+        draw.text((TEXT_X, y), f"{spd['avg_nonland_cmc']} non-land avg, {spd['ramp_count']} ramp pieces", font=f_tiny, fill=MUTED)
         y += int(f_tiny.size * 1.4)
+
+    # Ensure y clears the commander art thumbnail
+    if TEXT_X > PAD:
+        y = max(y, PAD + ART_H + 4 * SCALE)
 
     if bracket:
         bc = BRACKET_COLOR.get(bracket['bracket'], GOLD)
@@ -182,7 +208,7 @@ def generate_export_jpeg(analysis, color_mode='default'):
         draw.text((bx, by + 6 * SCALE + line_h), bracket['bracket_label'], font=f_brack_label, fill=TEXT)
         draw.text((bx, by + 6 * SCALE + line_h + 16 * SCALE), f"{bracket['game_changer_count']} GC{'s' if bracket['game_changer_count'] != 1 else ''}", font=font(FONT_REG, 9), fill=MUTED)
 
-    y += 10 * SCALE
+    y += 4 * SCALE
 
     # --- BADGES ---
     bx = PAD
@@ -194,11 +220,12 @@ def generate_export_jpeg(analysis, color_mode='default'):
         bw = draw_badge(draw, bx, y, wc, SURFACE, BORDER, TEXT, f_badge)
         bx += bw + 6 * SCALE
 
-    y += 28 * SCALE
+    badge_h = int(f_badge.size) + 10 * SCALE * 2  # font height + top+bottom padding
+    y += badge_h + 10 * SCALE  # clear badge + gap before divider
 
     # --- DIVIDER ---
     draw.line([(PAD, y), (W - PAD, y)], fill=BORDER, width=1)
-    y += 16 * SCALE
+    y += 12 * SCALE
 
     # --- INTERACTION STATS ---
     if analysis.get('interaction'):
@@ -317,7 +344,7 @@ def generate_export_jpeg(analysis, color_mode='default'):
     bw = bbbox[2] - bbbox[0]
     draw.text((W - PAD - bw, y + 3), branding, font=font(FONT_REG, 11), fill=(30, 58, 95))
 
-    final_h = y + 30 * SCALE
+    final_h = y + badge_h + 6 * SCALE
     img = img.crop((0, 0, W, final_h))
 
     output = BytesIO()
