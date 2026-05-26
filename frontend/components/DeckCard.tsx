@@ -271,7 +271,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
                 <p className="text-slate-500 text-sm shrink-0">{analysis.card_count} cards · avg CMC {analysis.avg_cmc}</p>
                 <div className="flex flex-wrap gap-1">
                   {colorKeys.map(color => (
-                    <span key={color} className={`text-xs font-black px-1.5 py-0.5 rounded ${colorBadge[color] || 'bg-slate-600 text-white border border-slate-600'}`}>
+                    <span key={color} className={`text-xs font-black w-6 h-6 inline-flex items-center justify-center rounded ${colorBadge[color] || 'bg-slate-600 text-white border border-slate-600'}`}>
                       {COLOR_SYMBOLS[color] || color}
                     </span>
                   ))}
@@ -319,7 +319,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
       )}
       {bracket && !bracket.error && (
         <div className={`border-l-4 pl-4 mb-5 py-1 ${bracketPalette[bracket.bracket].border}`}>
-          <div className="flex items-baseline gap-3 mb-2">
+          <div className="flex items-start gap-3 mb-2">
             <span className={`text-5xl font-black leading-none ${bracketPalette[bracket.bracket].text}`}>{bracket.bracket}</span>
             <div>
               <div className="text-base font-bold text-slate-200 leading-tight">{bracket.bracket_label}</div>
@@ -349,7 +349,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
 
       {/* Card Types + Interaction side by side */}
       <div className="grid grid-cols-2 divide-x divide-slate-700 mb-5">
-        <div className="pr-6">
+        <div className="pr-3">
           <h3 className="text-xs uppercase text-slate-600 tracking-wider mb-2">Card Types</h3>
           <div className="text-sm space-y-0.5">
             {Object.entries(analysis.card_types).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
@@ -361,21 +361,21 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
           </div>
         </div>
         {analysis.interaction && (
-          <div className="pl-6">
+          <div className="pl-3">
             <h3 className="text-xs uppercase text-slate-600 tracking-wider mb-2">Interaction</h3>
-            <div className="grid grid-cols-2 divide-x divide-y divide-slate-700">
+            <div className="grid grid-cols-2 border border-slate-700">
               {[
                 { label: 'Removal',  value: analysis.interaction.removal,       cards: analysis.interaction.removal_cards },
                 { label: 'Wipes',    value: analysis.interaction.board_wipes,   cards: analysis.interaction.board_wipe_cards },
                 { label: 'Counters', value: analysis.interaction.counterspells, cards: analysis.interaction.counterspell_cards },
                 { label: 'Tutors',   value: analysis.interaction.tutors,        cards: analysis.interaction.tutor_cards },
-              ].map(({ label, value, cards }) => (
+              ].map(({ label, value, cards }, idx) => (
                 <Tooltip key={label} content={
                   cards?.length > 0
                     ? <ul className="space-y-0.5">{cards.map(c => <li key={c}>{c}</li>)}</ul>
                     : `No ${label.toLowerCase()} detected`
                 }>
-                  <div className="cursor-help text-center py-2 px-1">
+                  <div className={`cursor-help text-center py-2 px-1 ${idx % 2 === 0 ? 'border-r border-slate-700' : ''} ${idx >= 2 ? 'border-t border-slate-700' : ''}`}>
                     <div className="text-xl font-black text-slate-100">{value}</div>
                     <div className="text-xs text-slate-500 uppercase tracking-wider">{label}</div>
                   </div>

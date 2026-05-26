@@ -99,12 +99,12 @@ def font(path, size):
 
 def draw_badge(draw, x, y, text, bg, border, fg, fnt):
     pad_x, pad_y = 10 * SCALE, 5 * SCALE
-    bbox = draw.textbbox((0, 0), text, font=fnt, anchor='lt')
+    bbox = draw.textbbox((0, 0), text, font=fnt, anchor='mm')
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
     bw = tw + pad_x * 2
     bh = th + pad_y * 2
     draw.rounded_rectangle([x, y, x + bw, y + bh], radius=4, fill=bg, outline=border, width=1)
-    draw.text((x + pad_x, y + bh // 2), text, font=fnt, fill=fg, anchor='lm')
+    draw.text((x + bw // 2, y + bh // 2), text, font=fnt, fill=fg, anchor='mm')
     return bw
 
 
@@ -299,10 +299,9 @@ def generate_export_jpeg(analysis, color_mode='default'):
     fx = PAD
     deck_colors = analysis.get('colors', {})
     is_colorless_only = all(c == 'colorless' for c in deck_colors)
-    ref_bbox = draw.textbbox((0, 0), 'W', font=f_badge, anchor='lt')
-    pad_x, pad_y = 7 * SCALE, 5 * SCALE
-    badge_w = (ref_bbox[2] - ref_bbox[0]) + pad_x * 2
-    badge_h = (ref_bbox[3] - ref_bbox[1]) + pad_y * 2
+    # Fixed square badge size so all color symbols are identical
+    badge_w = 22 * SCALE
+    badge_h = 22 * SCALE
 
     for color, data in COLOR_BADGE.items():
         if color not in deck_colors:
