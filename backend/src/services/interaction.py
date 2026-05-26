@@ -108,7 +108,11 @@ def analyze_interaction(cards: list) -> dict:
     names = {c["name"] for c in cards}
     return {
         "removal": len(names & REMOVAL),
+        "removal_cards": sorted(names & REMOVAL),
         "board_wipes": len(names & BOARD_WIPES),
+        "board_wipe_cards": sorted(names & BOARD_WIPES),
         "counterspells": len(names & COUNTERSPELLS),
+        "counterspell_cards": sorted(names & COUNTERSPELLS),
         "tutors": len(names & TUTORS),
+        "tutor_cards": sorted(names & TUTORS),
     }

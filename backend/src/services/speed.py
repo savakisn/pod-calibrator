@@ -36,7 +36,7 @@ RAMP = {
 _TIERS = [
     (1.8, "Turbo"),
     (2.4, "Fast"),
-    (3.1, "Balanced"),
+    (3.1, "Steady"),
     (3.7, "Slow"),
     (float("inf"), "Battlecruiser"),
 ]
