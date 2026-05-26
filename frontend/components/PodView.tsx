@@ -43,9 +43,9 @@ function bracketVerdict(decks: DeckAnalysis[]): Verdict {
   const brackets = decks.map(d => d.bracket?.bracket ?? 3)
   const spread = Math.max(...brackets) - Math.min(...brackets)
   if (spread === 0) return { label: 'Even spread', severity: 'ok' }
-  if (spread === 1) return { label: `Spread of ${spread} — minor`, severity: 'ok' }
-  if (spread === 2) return { label: `Spread of ${spread} — noticeable`, severity: 'warn' }
-  return { label: `Spread of ${spread} — unbalanced`, severity: 'danger' }
+  if (spread === 1) return { label: `Spread of ${spread}, minor`, severity: 'ok' }
+  if (spread === 2) return { label: `Spread of ${spread}, noticeable`, severity: 'warn' }
+  return { label: `Spread of ${spread}, unbalanced`, severity: 'danger' }
 }
 
 function speedVerdict(decks: DeckAnalysis[]): Verdict {
@@ -55,8 +55,8 @@ function speedVerdict(decks: DeckAnalysis[]): Verdict {
   const maxDev = Math.max(...tiers.map(t => Math.abs(t - median)))
   if (maxDev === 0) return { label: 'Aligned', severity: 'ok' }
   if (maxDev === 1) return { label: 'Minor gap', severity: 'ok' }
-  if (maxDev === 2) return { label: `${SPEED_LABEL[Math.min(...tiers)]} vs ${SPEED_LABEL[Math.max(...tiers)]} — gap`, severity: 'warn' }
-  return { label: `${SPEED_LABEL[Math.min(...tiers)]} vs ${SPEED_LABEL[Math.max(...tiers)]} — severe gap`, severity: 'danger' }
+  if (maxDev === 2) return { label: `${SPEED_LABEL[Math.min(...tiers)]} vs ${SPEED_LABEL[Math.max(...tiers)]}, gap`, severity: 'warn' }
+  return { label: `${SPEED_LABEL[Math.min(...tiers)]} vs ${SPEED_LABEL[Math.max(...tiers)]}, severe gap`, severity: 'danger' }
 }
 
 function winconVerdict(decks: DeckAnalysis[]): Verdict {
@@ -149,19 +149,21 @@ export default function PodView({ decks, onRemove }: { decks: DeckAnalysis[]; on
                     : null)
                 return (
                   <th key={i} className="p-3 text-center border-l border-slate-700 min-w-[140px]">
-                    <div className="relative inline-block mb-1">
-                      <button
-                        onClick={() => onRemove(i)}
-                        className="absolute -top-1 -right-1 z-10 text-slate-600 hover:text-red-400 text-xs border border-slate-700 hover:border-red-800 bg-slate-900 rounded-full w-4 h-4 flex items-center justify-center transition-colors"
-                      >
-                        ×
-                      </button>
-                      {artUrl && (
-                        <img src={artUrl} alt={d.commander?.name} className="w-20 h-14 object-cover rounded-lg border border-slate-700 mx-auto block" />
-                      )}
-                    </div>
-                    <div className="text-xs font-bold text-amber-400 leading-tight mt-1 px-1 truncate max-w-[140px]">
-                      {d.commander?.name ?? 'Unknown'}
+                    <div className="flex flex-col items-center">
+                      <div className="relative mb-1">
+                        <button
+                          onClick={() => onRemove(i)}
+                          className="absolute -top-1 -right-1 z-10 text-slate-600 hover:text-red-400 text-xs border border-slate-700 hover:border-red-800 bg-slate-900 rounded-full w-4 h-4 flex items-center justify-center transition-colors"
+                        >
+                          ×
+                        </button>
+                        {artUrl && (
+                          <img src={artUrl} alt={d.commander?.name} className="w-20 h-14 object-cover rounded-lg border border-slate-700" />
+                        )}
+                      </div>
+                      <div className="text-xs font-bold text-amber-400 leading-tight mt-1 px-1 text-center w-full truncate">
+                        {d.commander?.name ?? 'Unknown'}
+                      </div>
                     </div>
                     <div className="flex justify-center gap-0.5 mt-1 flex-wrap">
                       {colorKeys.map(c => (

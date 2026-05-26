@@ -24,7 +24,7 @@ export default function Home() {
   const [error, setError] = useState('')
 
   const loadUrls = async (raw: string) => {
-    const urls = raw.split(',').map(u => u.trim()).filter(Boolean)
+    const urls = raw.split(/[\s,]+/).map(u => u.trim()).filter(Boolean)
     if (!urls.length) return
     setLoading(true)
     setError('')
@@ -62,15 +62,15 @@ export default function Home() {
           <form onSubmit={handleSubmit} className="w-full">
             <label className="block text-sm font-medium mb-2 text-slate-400">
               {decks.length === 0
-                ? 'Deck URL (Moxfield or Archidekt)'
-                : 'Add another deck (or paste comma-separated URLs)'}
+                ? 'Paste one or more deck URLs (Moxfield or Archidekt)'
+                : 'Add more decks (separate multiple URLs with a space or comma)'}
             </label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder={decks.length === 0 ? 'https://moxfield.com/decks/...' : 'https://...'}
+                placeholder={decks.length === 0 ? 'https://moxfield.com/decks/... or paste multiple' : 'https://...'}
                 className="flex-1 p-3 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-600"
                 disabled={loading}
               />
