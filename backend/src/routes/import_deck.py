@@ -1,6 +1,23 @@
 import re
 import httpx
+import threading
+from datetime import datetime, timedelta
 from typing import Optional
+
+_cache: dict = {}
+_cache_lock = threading.Lock()
+_CACHE_TTL = timedelta(hours=4)
+
+def _cache_get(key: str):
+    with _cache_lock:
+        entry = _cache.get(key)
+        if entry and datetime.now() < entry['exp']:
+            return entry['data']
+    return None
+
+def _cache_set(key: str, data: dict):
+    with _cache_lock:
+        _cache[key] = {'data': data, 'exp': datetime.now() + _CACHE_TTL}
 from ..services.spellbook import estimate_bracket
 from ..services.speed import analyze_speed
 from ..services.wincon import detect_win_conditions
@@ -202,8 +219,14 @@ def analyze_from_archidekt(url: str) -> dict:
 # --- Generic dispatcher ---
 
 def analyze_from_url(url: str) -> dict:
+    cached = _cache_get(url)
+    if cached:
+        return cached
     if "moxfield.com" in url:
-        return analyze_from_moxfield(url)
-    if "archidekt.com" in url:
-        return analyze_from_archidekt(url)
-    raise ValueError("Unsupported site. Supported: Moxfield, Archidekt")
+        result = analyze_from_moxfield(url)
+    elif "archidekt.com" in url:
+        result = analyze_from_archidekt(url)
+    else:
+        raise ValueError("Unsupported site. Supported: Moxfield, Archidekt")
+    _cache_set(url, result)
+    return result
