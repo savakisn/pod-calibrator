@@ -234,7 +234,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
       const res = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ analysis }),
+        body: JSON.stringify({ analysis, colorMode }),
       })
       if (!res.ok) throw new Error('Export failed')
       const blob = await res.blob()
@@ -348,8 +348,8 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
       )}
 
       {/* Card Types + Interaction side by side */}
-      <div className="grid grid-cols-2 gap-6 mb-5">
-        <div>
+      <div className="grid grid-cols-2 divide-x divide-slate-700 mb-5">
+        <div className="pr-6">
           <h3 className="text-xs uppercase text-slate-600 tracking-wider mb-2">Card Types</h3>
           <div className="text-sm space-y-0.5">
             {Object.entries(analysis.card_types).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
@@ -361,9 +361,9 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
           </div>
         </div>
         {analysis.interaction && (
-          <div>
+          <div className="pl-6">
             <h3 className="text-xs uppercase text-slate-600 tracking-wider mb-2">Interaction</h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div className="grid grid-cols-2 divide-x divide-y divide-slate-700">
               {[
                 { label: 'Removal',  value: analysis.interaction.removal,       cards: analysis.interaction.removal_cards },
                 { label: 'Wipes',    value: analysis.interaction.board_wipes,   cards: analysis.interaction.board_wipe_cards },
@@ -375,7 +375,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
                     ? <ul className="space-y-0.5">{cards.map(c => <li key={c}>{c}</li>)}</ul>
                     : `No ${label.toLowerCase()} detected`
                 }>
-                  <div className="cursor-help">
+                  <div className="cursor-help text-center py-2 px-1">
                     <div className="text-xl font-black text-slate-100">{value}</div>
                     <div className="text-xs text-slate-500 uppercase tracking-wider">{label}</div>
                   </div>

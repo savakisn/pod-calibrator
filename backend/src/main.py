@@ -30,7 +30,8 @@ def export_card():
         if not analysis:
             return jsonify({"error": "No analysis provided"}), 400
 
-        jpeg_io = generate_export_jpeg(analysis)
+        color_mode = data.get("colorMode", "default")
+        jpeg_io = generate_export_jpeg(analysis, color_mode)
         commander_name = analysis.get('commander', {}).get('name', 'deck').replace(' ', '-').lower()
         filename = f"{commander_name}-pod-calibrator.jpg"
 
