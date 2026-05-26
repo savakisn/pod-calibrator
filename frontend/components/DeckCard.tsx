@@ -319,7 +319,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
       )}
       {bracket && !bracket.error && (
         <div className={`border-l-4 pl-4 mb-5 py-1 ${bracketPalette[bracket.bracket].border}`}>
-          <div className="flex items-start gap-3 mb-2">
+          <div className="flex items-end gap-3 mb-2">
             <span className={`text-5xl font-black leading-none ${bracketPalette[bracket.bracket].text}`}>{bracket.bracket}</span>
             <div>
               <div className="text-base font-bold text-slate-200 leading-tight">{bracket.bracket_label}</div>
@@ -349,7 +349,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
 
       {/* Card Types + Interaction side by side */}
       <div className="grid grid-cols-2 divide-x divide-slate-700 mb-5">
-        <div className="pr-3">
+        <div className="pr-2">
           <h3 className="text-xs uppercase text-slate-600 tracking-wider mb-2">Card Types</h3>
           <div className="text-sm space-y-0.5">
             {Object.entries(analysis.card_types).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
@@ -361,7 +361,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
           </div>
         </div>
         {analysis.interaction && (
-          <div className="pl-3">
+          <div className="pl-2">
             <h3 className="text-xs uppercase text-slate-600 tracking-wider mb-2">Interaction</h3>
             <div className="grid grid-cols-2 border border-slate-700">
               {[
