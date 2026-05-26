@@ -14,9 +14,17 @@ TEXT    = (226, 232, 240)
 MUTED   = (100, 116, 139)
 GOLD    = (245, 158, 11)
 
-FONT_REG   = '/usr/share/fonts/noto/NotoSans-Regular.ttf'
-FONT_BOLD  = '/usr/share/fonts/noto/NotoSans-Bold.ttf'
-FONT_BLACK = '/usr/share/fonts/noto/NotoSans-Black.ttf'
+def _find_font(name):
+    for base in ('/usr/share/fonts/noto', '/usr/share/fonts/truetype/noto'):
+        p = f'{base}/{name}'
+        import os
+        if os.path.exists(p):
+            return p
+    return name
+
+FONT_REG   = _find_font('NotoSans-Regular.ttf')
+FONT_BOLD  = _find_font('NotoSans-Bold.ttf')
+FONT_BLACK = _find_font('NotoSans-Black.ttf')
 
 # All color-mode-dependent palettes in one place
 PALETTES = {
