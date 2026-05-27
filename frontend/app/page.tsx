@@ -3,17 +3,32 @@
 import { useState } from 'react'
 import DeckCard, { type DeckAnalysis, type ColorMode } from '@/components/DeckCard'
 import PodView from '@/components/PodView'
+import { track, deckSource } from '@/lib/analytics'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 async function fetchDeck(url: string): Promise<DeckAnalysis> {
+  const trimmed = url.trim()
+  const source = deckSource(trimmed)
   const res = await fetch(`${API_URL}/api/import`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url: url.trim() }),
+    body: JSON.stringify({ url: trimmed }),
   })
   const data = await res.json()
-  if (!res.ok) throw new Error(data.error || 'Failed to import deck')
+  if (!res.ok) {
+    track('import_failed', {
+      source,
+      status: res.status,
+      error_message: data.error || 'Unknown error',
+    })
+    throw new Error(data.error || 'Failed to import deck')
+  }
+  track('deck_imported', {
+    source,
+    cache_hit: !!data._meta?.cache_hit,
+    analysis_ms: data._meta?.ms ?? 0,
+  })
   return data
 }
 
@@ -31,7 +46,11 @@ export default function Home() {
     setError('')
     try {
       const results = await Promise.all(urls.map(fetchDeck))
-      setDecks(prev => [...prev, ...results])
+      setDecks(prev => {
+        const next = [...prev, ...results]
+        if (next.length >= 2) track('pod_assembled', { deck_count: next.length })
+        return next
+      })
       setInput('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to import deck')
@@ -103,7 +122,7 @@ export default function Home() {
         {decks.length > 0 && (
           <div className="flex gap-1 justify-center mb-6">
             {(['protanopia', 'deuteranopia', 'tritanopia'] as ColorMode[]).map(mode => (
-              <button key={mode} onClick={() => setColorMode(mode)} className={`text-xs px-2 py-0.5 rounded border transition-colors ${colorMode === mode ? 'border-slate-500 bg-slate-700 text-slate-200' : 'border-slate-800 text-slate-600 hover:text-slate-400 hover:border-slate-700'}`}>
+              <button key={mode} onClick={() => { setColorMode(mode); track('colorblind_mode_changed', { mode }) }} className={`text-xs px-2 py-0.5 rounded border transition-colors ${colorMode === mode ? 'border-slate-500 bg-slate-700 text-slate-200' : 'border-slate-800 text-slate-600 hover:text-slate-400 hover:border-slate-700'}`}>
                 {mode === 'protanopia' ? 'Protanopia' : mode === 'deuteranopia' ? 'Deuteranopia' : 'Tritanopia'}
               </button>
             ))}

@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { track } from '@/lib/analytics'
 
 interface Card {
   name: string
@@ -237,6 +238,7 @@ export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalys
         : null)
 
   const handleExport = async () => {
+    track('export_clicked', { format: 'single', deck_count: 1 })
     try {
       const res = await fetch('/api/export', {
         method: 'POST',

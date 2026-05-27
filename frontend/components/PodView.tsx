@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { DeckAnalysis, ColorMode } from './DeckCard'
 import { COLOR_BADGE_PALETTE } from './DeckCard'
+import { track } from '@/lib/analytics'
 
 const SPEED_TIER: Record<string, number> = {
   Turbo: 0, Fast: 1, Steady: 2, Slow: 3, Battlecruiser: 4,
@@ -133,6 +134,7 @@ export default function PodView({ decks, onRemove, colorMode }: { decks: DeckAna
   const colorBadge = COLOR_BADGE_PALETTE[colorMode]
 
   const exportDeck = async (deck: DeckAnalysis) => {
+    track('export_clicked', { format: 'single', deck_count: 1 })
     try {
       const res = await fetch('/api/export', {
         method: 'POST',
@@ -149,6 +151,7 @@ export default function PodView({ decks, onRemove, colorMode }: { decks: DeckAna
   }
 
   const exportAllCombined = async () => {
+    track('export_clicked', { format: 'all_combined', deck_count: decks.length })
     try {
       const res = await fetch('/api/export/comparison', {
         method: 'POST',
@@ -164,6 +167,7 @@ export default function PodView({ decks, onRemove, colorMode }: { decks: DeckAna
   }
 
   const exportTable = async () => {
+    track('export_clicked', { format: 'comparison_table', deck_count: decks.length })
     try {
       const res = await fetch('/api/export/table', {
         method: 'POST',
