@@ -1,23 +1,32 @@
 import re
 import httpx
 import threading
+from collections import OrderedDict
 from datetime import datetime, timedelta
 from typing import Optional
 
-_cache: dict = {}
-_cache_lock = threading.Lock()
 _CACHE_TTL = timedelta(hours=4)
+_CACHE_MAX = 500
+_cache: "OrderedDict[str, dict]" = OrderedDict()
+_cache_lock = threading.Lock()
 
 def _cache_get(key: str):
     with _cache_lock:
         entry = _cache.get(key)
-        if entry and datetime.now() < entry['exp']:
-            return entry['data']
-    return None
+        if not entry:
+            return None
+        if datetime.now() >= entry['exp']:
+            _cache.pop(key, None)
+            return None
+        _cache.move_to_end(key)
+        return entry['data']
 
 def _cache_set(key: str, data: dict):
     with _cache_lock:
         _cache[key] = {'data': data, 'exp': datetime.now() + _CACHE_TTL}
+        _cache.move_to_end(key)
+        while len(_cache) > _CACHE_MAX:
+            _cache.popitem(last=False)
 from ..services.spellbook import estimate_bracket
 from ..services.speed import analyze_speed
 from ..services.wincon import detect_win_conditions
