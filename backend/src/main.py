@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from .routes.import_deck import analyze_from_url
-from .routes.export import generate_export_jpeg
+from .routes.export import generate_export_jpeg, generate_comparison_jpeg
 
 app = Flask(__name__)
 CORS(app)
@@ -30,12 +30,27 @@ def export_card():
         if not analysis:
             return jsonify({"error": "No analysis provided"}), 400
 
-        color_mode = data.get("colorMode", "default")
+        color_mode = data.get("colorMode", "deuteranopia")
         jpeg_io = generate_export_jpeg(analysis, color_mode)
         commander_name = analysis.get('commander', {}).get('name', 'deck').replace(' ', '-').lower()
         filename = f"{commander_name}-pod-calibrator.jpg"
 
         return send_file(jpeg_io, mimetype='image/jpeg', as_attachment=True, download_name=filename)
+    except Exception as e:
+        return jsonify({"error": f"Export failed: {str(e)}"}), 500
+
+@app.route("/api/export/comparison", methods=["POST"])
+def export_comparison():
+    try:
+        data = request.get_json()
+        analyses = data.get("analyses")
+        if not analyses or len(analyses) < 2:
+            return jsonify({"error": "At least 2 analyses required"}), 400
+
+        color_mode = data.get("colorMode", "deuteranopia")
+        jpeg_io = generate_comparison_jpeg(analyses, color_mode)
+
+        return send_file(jpeg_io, mimetype='image/jpeg', as_attachment=True, download_name='pod-comparison.jpg')
     except Exception as e:
         return jsonify({"error": f"Export failed: {str(e)}"}), 500
 

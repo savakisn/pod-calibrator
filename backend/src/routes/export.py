@@ -355,3 +355,24 @@ def generate_export_jpeg(analysis, color_mode='deuteranopia'):
     img.save(output, format='JPEG', quality=92)
     output.seek(0)
     return output
+
+
+def generate_comparison_jpeg(analyses, color_mode='deuteranopia'):
+    images = []
+    for analysis in analyses:
+        buf = generate_export_jpeg(analysis, color_mode)
+        images.append(Image.open(buf))
+
+    gap = 8
+    total_h = sum(img.height for img in images) + gap * (len(images) - 1)
+    composite = Image.new('RGB', (images[0].width, total_h), BG)
+
+    y = 0
+    for img in images:
+        composite.paste(img, (0, y))
+        y += img.height + gap
+
+    output = BytesIO()
+    composite.save(output, format='JPEG', quality=92)
+    output.seek(0)
+    return output
