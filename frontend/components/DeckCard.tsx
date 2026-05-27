@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React from 'react'
 
 interface Card {
   name: string
@@ -59,7 +59,7 @@ export interface DeckAnalysis {
   win_conditions: string[]
 }
 
-type ColorMode = 'default' | 'tritanopia' | 'mono'
+export type ColorMode = 'default' | 'tritanopia' | 'mono'
 
 const TYPE_ORDER = ['Creature', 'Planeswalker', 'Instant', 'Sorcery', 'Enchantment', 'Artifact', 'Land', 'Other']
 const SUPERTYPES = new Set(['Basic', 'Legendary', 'Snow', 'World'])
@@ -216,8 +216,7 @@ const WIN_TOOLTIP: Record<string, string> = {
   Goodstuff:    'No single dominant strategy detected. Relies on card quality and flexible interaction.',
 }
 
-export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }) {
-  const [colorMode, setColorMode] = useState<ColorMode>('default')
+export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalysis | null; colorMode: ColorMode }) {
 
   if (!analysis) return null
 
@@ -294,13 +293,6 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
             <button onClick={handleExport} className="text-xs text-slate-500 hover:text-amber-400 border border-slate-700 hover:border-amber-700/50 rounded-lg px-3 py-1.5 shrink-0 transition-colors">
               Export
             </button>
-          </div>
-          <div className="flex gap-1 mt-2 mb-1">
-            {(['default', 'tritanopia', 'mono'] as ColorMode[]).map(mode => (
-              <button key={mode} onClick={() => setColorMode(mode)} className={`text-xs px-2 py-0.5 rounded border transition-colors ${colorMode === mode ? 'border-slate-500 bg-slate-700 text-slate-200' : 'border-slate-800 text-slate-600 hover:text-slate-400 hover:border-slate-700'}`}>
-                {mode === 'default' ? 'Standard' : mode === 'tritanopia' ? 'Tritanopia' : 'Mono'}
-              </button>
-            ))}
           </div>
         </div>
       </div>

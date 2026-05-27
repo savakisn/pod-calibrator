@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import DeckCard, { type DeckAnalysis } from '@/components/DeckCard'
+import DeckCard, { type DeckAnalysis, type ColorMode } from '@/components/DeckCard'
 import PodView from '@/components/PodView'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -22,6 +22,7 @@ export default function Home() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [colorMode, setColorMode] = useState<ColorMode>('default')
 
   const loadUrls = async (raw: string) => {
     const urls = raw.split(/[\s,]+/).map(u => u.trim()).filter(Boolean)
@@ -99,6 +100,16 @@ export default function Home() {
           </div>
         )}
 
+        {decks.length > 0 && (
+          <div className="flex gap-1 justify-center mb-6">
+            {(['default', 'tritanopia', 'mono'] as ColorMode[]).map(mode => (
+              <button key={mode} onClick={() => setColorMode(mode)} className={`text-xs px-2 py-0.5 rounded border transition-colors ${colorMode === mode ? 'border-slate-500 bg-slate-700 text-slate-200' : 'border-slate-800 text-slate-600 hover:text-slate-400 hover:border-slate-700'}`}>
+                {mode === 'default' ? 'Standard' : mode === 'tritanopia' ? 'Tritanopia' : 'Mono'}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Solo view */}
         {decks.length === 1 && (
           <div className="flex justify-center">
@@ -109,7 +120,7 @@ export default function Home() {
               >
                 ×
               </button>
-              <DeckCard analysis={decks[0]} />
+              <DeckCard analysis={decks[0]} colorMode={colorMode} />
             </div>
           </div>
         )}
