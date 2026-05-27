@@ -244,13 +244,20 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
       })
       if (!res.ok) throw new Error('Export failed')
       const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = res.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'deck-pod-calibrator.jpg'
-      a.click()
-      URL.revokeObjectURL(url)
+      const filename = res.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'deck-pod-calibrator.jpg'
+      const file = new File([blob], filename, { type: 'image/jpeg' })
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename })
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(url)
+      }
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
       alert('Export failed: ' + (err instanceof Error ? err.message : 'Unknown error'))
     }
   }
