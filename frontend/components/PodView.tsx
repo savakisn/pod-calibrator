@@ -139,7 +139,7 @@ export default function PodView({ decks, onRemove }: { decks: DeckAnalysis[]; on
         <table className="w-full bg-slate-900 border border-slate-700 rounded-xl">
           <thead>
             <tr>
-              <th className="p-3 text-left" />
+              <th className="p-3 text-left text-xs text-slate-500 uppercase tracking-wider align-bottom">Commander</th>
               {decks.map((d, i) => {
                 const isColorlessOnly = Object.keys(d.colors).every(c => c === 'colorless')
                 const colorKeys = COLOR_ORDER.filter(c => c in d.colors && (c !== 'colorless' || isColorlessOnly))
