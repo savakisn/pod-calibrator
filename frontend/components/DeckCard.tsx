@@ -59,7 +59,7 @@ export interface DeckAnalysis {
   win_conditions: string[]
 }
 
-export type ColorMode = 'default' | 'tritanopia' | 'mono'
+export type ColorMode = 'default' | 'tritanopia'
 
 const TYPE_ORDER = ['Creature', 'Planeswalker', 'Instant', 'Sorcery', 'Enchantment', 'Artifact', 'Land', 'Other']
 const SUPERTYPES = new Set(['Basic', 'Legendary', 'Snow', 'World'])
@@ -128,13 +128,6 @@ const BRACKET_PALETTE: Record<ColorMode, Record<number, { border: string; text: 
     4: { border: 'border-orange-500',  text: 'text-orange-400' },
     5: { border: 'border-red-600',     text: 'text-red-500' },
   },
-  mono: {
-    1: { border: 'border-slate-500',   text: 'text-slate-500' },
-    2: { border: 'border-slate-400',   text: 'text-slate-400' },
-    3: { border: 'border-slate-300',   text: 'text-slate-300' },
-    4: { border: 'border-slate-200',   text: 'text-slate-200' },
-    5: { border: 'border-white',       text: 'text-white' },
-  },
 }
 
 const SPEED_PALETTE: Record<ColorMode, Record<string, string>> = {
@@ -151,13 +144,6 @@ const SPEED_PALETTE: Record<ColorMode, Record<string, string>> = {
     Steady:       'bg-violet-900/50 border-violet-700 text-violet-300',
     Slow:         'bg-rose-900/50 border-rose-700 text-rose-300',
     Battlecruiser:'bg-slate-700 border-slate-600 text-slate-300',
-  },
-  mono: {
-    Turbo:        'bg-slate-800 border-slate-100 text-slate-100',
-    Fast:         'bg-slate-800 border-slate-300 text-slate-300',
-    Steady:       'bg-slate-800 border-slate-400 text-slate-400',
-    Slow:         'bg-slate-800 border-slate-500 text-slate-500',
-    Battlecruiser:'bg-slate-800 border-slate-600 text-slate-600',
   },
 }
 
@@ -177,14 +163,6 @@ const COLOR_BADGE_PALETTE: Record<ColorMode, Record<string, string>> = {
     black:    'bg-slate-600 text-white border border-slate-600',
     red:      'bg-rose-600 text-white border border-rose-600',
     green:    'bg-green-600 text-white border border-green-600',
-    colorless:'bg-slate-500 text-white border border-slate-500',
-  },
-  mono: {
-    white:    'bg-slate-100 text-slate-900 border border-slate-300',
-    blue:     'bg-slate-400 text-white border border-slate-400',
-    black:    'bg-slate-800 text-white border border-slate-500',
-    red:      'bg-slate-300 text-slate-900 border border-slate-300',
-    green:    'bg-slate-600 text-white border border-slate-600',
     colorless:'bg-slate-500 text-white border border-slate-500',
   },
 }

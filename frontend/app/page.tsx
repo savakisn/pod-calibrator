@@ -102,9 +102,9 @@ export default function Home() {
 
         {decks.length > 0 && (
           <div className="flex gap-1 justify-center mb-6">
-            {(['default', 'tritanopia', 'mono'] as ColorMode[]).map(mode => (
+            {(['default', 'tritanopia'] as ColorMode[]).map(mode => (
               <button key={mode} onClick={() => setColorMode(mode)} className={`text-xs px-2 py-0.5 rounded border transition-colors ${colorMode === mode ? 'border-slate-500 bg-slate-700 text-slate-200' : 'border-slate-800 text-slate-600 hover:text-slate-400 hover:border-slate-700'}`}>
-                {mode === 'default' ? 'Standard' : mode === 'tritanopia' ? 'Tritanopia' : 'Mono'}
+                {mode === 'default' ? 'Red/Green' : 'Tritanopia'}
               </button>
             ))}
           </div>
