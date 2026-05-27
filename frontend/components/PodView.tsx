@@ -165,7 +165,7 @@ export default function PodView({ decks, onRemove }: { decks: DeckAnalysis[]; on
                         {d.commander?.name ?? 'Unknown'}
                       </div>
                     </div>
-                    <div className="flex justify-center gap-0.5 mt-1 flex-wrap">
+                    <div className="flex justify-center gap-0.5 mt-1">
                       {colorKeys.map(c => (
                         <span key={c} className={`text-xs font-black w-5 h-5 inline-flex items-center justify-center rounded ${COLOR_CLASSES[c]}`}>
                           {COLOR_SYMBOLS[c]}

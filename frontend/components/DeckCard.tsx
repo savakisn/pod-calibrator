@@ -270,12 +270,12 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h2 className="text-3xl font-extrabold text-amber-400 mb-1 leading-tight break-words">
+              <h2 className="text-xl font-extrabold text-amber-400 mb-1 leading-tight break-words">
                 {analysis.commander?.name || 'Deck'}
               </h2>
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-slate-500 text-sm shrink-0">{analysis.card_count} cards · avg CMC {analysis.avg_cmc}</p>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex gap-1">
                   {colorKeys.map(color => (
                     <span key={color} className={`text-xs font-black w-6 h-6 inline-flex items-center justify-center rounded ${colorBadge[color] || 'bg-slate-600 text-white border border-slate-600'}`}>
                       {COLOR_SYMBOLS[color] || color}
