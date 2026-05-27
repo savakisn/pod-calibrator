@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { DeckAnalysis, ColorMode } from './DeckCard'
 import { COLOR_BADGE_PALETTE } from './DeckCard'
 
@@ -121,6 +122,8 @@ async function doExport(blob: Blob, filename: string) {
 }
 
 export default function PodView({ decks, onRemove, colorMode }: { decks: DeckAnalysis[]; onRemove: (i: number) => void; colorMode: ColorMode }) {
+  const [exportOpen, setExportOpen] = useState(false)
+
   const bv = bracketVerdict(decks)
   const sv = speedVerdict(decks)
   const wv = winconVerdict(decks)
@@ -145,9 +148,24 @@ export default function PodView({ decks, onRemove, colorMode }: { decks: DeckAna
     }
   }
 
-  const exportComparison = async () => {
+  const exportAllCombined = async () => {
     try {
       const res = await fetch('/api/export/comparison', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analyses: decks, colorMode }),
+      })
+      if (!res.ok) return
+      const blob = await res.blob()
+      await doExport(blob, 'pod-all-decks.jpg')
+    } catch (e) {
+      if (e instanceof Error && e.name !== 'AbortError') alert('Export failed')
+    }
+  }
+
+  const exportTable = async () => {
+    try {
+      const res = await fetch('/api/export/table', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ analyses: decks, colorMode }),
@@ -159,6 +177,8 @@ export default function PodView({ decks, onRemove, colorMode }: { decks: DeckAna
       if (e instanceof Error && e.name !== 'AbortError') alert('Export failed')
     }
   }
+
+  const closeExport = () => setExportOpen(false)
 
   return (
     <div className="w-full">
@@ -172,12 +192,47 @@ export default function PodView({ decks, onRemove, colorMode }: { decks: DeckAna
         <span className="text-lg">{icon(ov.severity)}</span>
         {ov.label}
         <span className="ml-auto font-normal text-xs opacity-70">{decks.length} decks in pod</span>
-        <button
-          onClick={exportComparison}
-          className="font-normal text-xs text-slate-500 hover:text-amber-400 border border-slate-700 hover:border-amber-700/50 rounded px-2 py-0.5 transition-colors"
-        >
-          Export All
-        </button>
+
+        {/* Export button + panel */}
+        <div className="relative">
+          <button
+            onClick={() => setExportOpen(o => !o)}
+            className="font-normal text-xs text-slate-500 hover:text-amber-400 border border-slate-700 hover:border-amber-700/50 rounded px-2 py-0.5 transition-colors"
+          >
+            Export
+          </button>
+          {exportOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={closeExport} />
+              <div className="absolute right-0 top-full mt-1 z-20 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1.5 min-w-[210px]">
+                <div className="text-xs text-slate-500 uppercase tracking-wider px-3 py-1 font-medium">Comparison</div>
+                <button
+                  onClick={() => { exportTable(); closeExport() }}
+                  className="w-full text-left px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 transition-colors"
+                >
+                  Comparison table
+                </button>
+                <button
+                  onClick={() => { exportAllCombined(); closeExport() }}
+                  className="w-full text-left px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 transition-colors"
+                >
+                  All deck cards combined
+                </button>
+                <div className="border-t border-slate-800 my-1" />
+                <div className="text-xs text-slate-500 uppercase tracking-wider px-3 py-1 font-medium">Individual decks</div>
+                {decks.map((d, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { exportDeck(d); closeExport() }}
+                    className="w-full text-left px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 transition-colors truncate"
+                  >
+                    {d.commander?.name ?? `Deck ${i + 1}`}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Comparison table */}
@@ -218,12 +273,6 @@ export default function PodView({ decks, onRemove, colorMode }: { decks: DeckAna
                         </span>
                       ))}
                     </div>
-                    <button
-                      onClick={() => exportDeck(d)}
-                      className="mt-2 text-xs text-slate-600 hover:text-amber-400 transition-colors"
-                    >
-                      Export
-                    </button>
                   </th>
                 )
               })}

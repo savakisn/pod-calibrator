@@ -357,6 +357,274 @@ def generate_export_jpeg(analysis, color_mode='deuteranopia'):
     return output
 
 
+COLOR_ORDER = ['white', 'blue', 'black', 'red', 'green', 'colorless']
+_SPEED_TIER  = {'Turbo': 0, 'Fast': 1, 'Steady': 2, 'Slow': 3, 'Battlecruiser': 4}
+_SPEED_LIST  = ['Turbo', 'Fast', 'Steady', 'Slow', 'Battlecruiser']
+
+
+def _bracket_verdict(analyses):
+    brackets = [(a.get('bracket') or {}).get('bracket') or 3 for a in analyses]
+    spread = max(brackets) - min(brackets)
+    if spread == 0: return 'Even spread', 'ok'
+    if spread == 1: return f'Spread of {spread}, minor', 'ok'
+    if spread == 2: return f'Spread of {spread}, noticeable', 'warn'
+    return f'Spread of {spread}, unbalanced', 'danger'
+
+
+def _speed_verdict(analyses):
+    tiers = [_SPEED_TIER.get((a.get('speed') or {}).get('label', 'Steady'), 2) for a in analyses]
+    s = sorted(tiers)
+    median = s[len(s) // 2]
+    max_dev = max(abs(t - median) for t in tiers)
+    if max_dev == 0: return 'Aligned', 'ok'
+    if max_dev == 1: return 'Minor gap', 'ok'
+    mn, mx = min(tiers), max(tiers)
+    if max_dev == 2: return f'{_SPEED_LIST[mn]} vs {_SPEED_LIST[mx]}, gap', 'warn'
+    return f'{_SPEED_LIST[mn]} vs {_SPEED_LIST[mx]}, severe gap', 'danger'
+
+
+def _wincon_verdict(analyses):
+    counts = {}
+    for a in analyses:
+        for wc in (a.get('win_conditions') or []):
+            if wc == 'Goodstuff': continue
+            counts[wc] = counts.get(wc, 0) + 1
+    threshold = max(2, -(-len(analyses) // 2))
+    overlaps = [(k, v) for k, v in counts.items() if v >= threshold]
+    if not overlaps: return 'Diverse', 'ok'
+    names = ', '.join(k for k, _ in overlaps)
+    if any(v >= len(analyses) - 1 for _, v in overlaps):
+        return f'Heavy {names} overlap', 'danger'
+    return f'{names} overlap', 'warn'
+
+
+def _interaction_verdict(analyses):
+    ix = [(a.get('interaction') or {}) for a in analyses]
+    totals = [d.get('removal', 0) + d.get('board_wipes', 0) + d.get('counterspells', 0) for d in ix]
+    avg = sum(totals) / len(totals) if totals else 0
+    mn = min(totals) if totals else 0
+    if avg == 0 or mn >= avg * 0.5: return 'Balanced', 'ok'
+    if mn >= avg * 0.3: return 'One deck light on interaction', 'warn'
+    return 'One deck has almost no interaction', 'danger'
+
+
+def _overall_verdict(verdicts):
+    sevs = [s for _, s in verdicts]
+    if 'danger' in sevs: return 'Pod is unbalanced', 'danger'
+    if 'warn' in sevs: return 'Pod has some tension', 'warn'
+    return 'Pod looks well-matched', 'ok'
+
+
+def generate_comparison_table_jpeg(analyses, color_mode='deuteranopia'):
+    palette    = PALETTES.get(color_mode, PALETTES['deuteranopia'])
+    COLOR_BADGE  = palette['color_badge']
+    BRACKET_COLOR = palette['bracket']
+    SPEED_STYLE  = palette['speed']
+
+    n = len(analyses)
+
+    bv = _bracket_verdict(analyses)
+    sv = _speed_verdict(analyses)
+    wv = _wincon_verdict(analyses)
+    iv = _interaction_verdict(analyses)
+    ov = _overall_verdict([bv, sv, wv, iv])
+
+    SEV_COLOR  = {'ok': (45, 212, 191),  'warn': (234, 179, 8),   'danger': (248, 113, 113)}
+    SEV_ICON   = {'ok': '✓',         'warn': '▲',         'danger': '⚠'}
+    SEV_BG     = {'ok': (2, 44, 34),      'warn': (39, 39, 11),     'danger': (69, 10, 10)}
+    SEV_BORDER = {'ok': (17, 94, 89),     'warn': (113, 113, 11),   'danger': (127, 29, 29)}
+
+    CONTENT_W = W - PAD * 2
+    LABEL_W   = 92 * SCALE
+    VERDICT_W = 190 * SCALE
+    DECK_W    = (CONTENT_W - LABEL_W - VERDICT_W) // n
+
+    HEADER_H  = 80 * SCALE
+    ROW_H     = 34 * SCALE
+    WCON_H    = 56 * SCALE
+    OVERALL_H = 38 * SCALE
+
+    ROWS = [
+        ('Bracket',  'bracket',  ROW_H,  bv),
+        ('Speed',    'speed',    ROW_H,  sv),
+        ('Win Cons', 'wincons',  WCON_H, wv),
+        ('Ramp',     'ramp',     ROW_H,  None),
+        ('Removal',  'removal',  ROW_H,  None),
+        ('Wipes',    'wipes',    ROW_H,  None),
+        ('Counters', 'counters', ROW_H,  None),
+        ('Tutors',   'tutors',   ROW_H,  iv),
+    ]
+
+    total_h = PAD + OVERALL_H + 14 * SCALE + HEADER_H + sum(rh for *_, rh, __ in ROWS) + PAD + 20 * SCALE
+    img  = Image.new('RGB', (W, total_h), BG)
+    draw = ImageDraw.Draw(img)
+
+    f_sm    = font(FONT_REG,   9)
+    f_label = font(FONT_BOLD,  8)
+    f_name  = font(FONT_BOLD, 10)
+    f_badge = font(FONT_BOLD,  9)
+    f_val   = font(FONT_BLACK,14)
+    f_vdict = font(FONT_REG,   9)
+    f_ovrl  = font(FONT_BOLD, 11)
+    f_tiny  = font(FONT_REG,   8)
+    f_tag   = font(FONT_REG,   7)
+
+    y = PAD
+    TABLE_X = PAD
+
+    # Overall verdict banner
+    ov_col = SEV_COLOR[ov[1]]
+    draw.rounded_rectangle(
+        [TABLE_X, y, TABLE_X + CONTENT_W, y + OVERALL_H],
+        radius=6 * SCALE, fill=SEV_BG[ov[1]], outline=SEV_BORDER[ov[1]], width=1
+    )
+    draw.text((TABLE_X + 14 * SCALE, y + OVERALL_H // 2),
+              f"{SEV_ICON[ov[1]]}  {ov[0]}", font=f_ovrl, fill=ov_col, anchor='lm')
+    cnt_txt = f"{n} decks in pod"
+    cnt_w = draw.textbbox((0, 0), cnt_txt, font=f_sm)[2]
+    draw.text((TABLE_X + CONTENT_W - 14 * SCALE - cnt_w, y + OVERALL_H // 2),
+              cnt_txt, font=f_sm, fill=MUTED, anchor='lm')
+
+    y += OVERALL_H + 14 * SCALE
+    TABLE_Y = y
+
+    # Header row
+    draw.text((TABLE_X + LABEL_W // 2, y + HEADER_H // 2),
+              'Commander', font=f_label, fill=MUTED, anchor='mm')
+
+    for i, a in enumerate(analyses):
+        col_x = TABLE_X + LABEL_W + i * DECK_W
+        draw.line([(col_x, y), (col_x, y + HEADER_H)], fill=BORDER, width=1)
+
+        name = (a.get('commander') or {}).get('name') or f'Deck {i + 1}'
+        max_name_w = DECK_W - 8 * SCALE
+        while draw.textbbox((0, 0), name, font=f_name)[2] > max_name_w and len(name) > 1:
+            name = name[:-1]
+        if name != ((a.get('commander') or {}).get('name') or f'Deck {i + 1}'):
+            name += '…'
+
+        draw.text((col_x + DECK_W // 2, y + 12 * SCALE), name, font=f_name, fill=GOLD, anchor='mt')
+
+        colors = a.get('colors', {})
+        is_cl_only = all(c == 'colorless' for c in colors)
+        badge_keys = [c for c in COLOR_ORDER if c in colors and (c != 'colorless' or is_cl_only)]
+        CB_W = 18 * SCALE
+        CB_H = 18 * SCALE
+        cb_gap = 3 * SCALE
+        row_w = len(badge_keys) * (CB_W + cb_gap) - cb_gap if badge_keys else 0
+        bx0 = col_x + (DECK_W - row_w) // 2
+        by0 = y + HEADER_H - CB_H - 10 * SCALE
+        for bi, c in enumerate(badge_keys):
+            bd = COLOR_BADGE.get(c)
+            if not bd: continue
+            bx = bx0 + bi * (CB_W + cb_gap)
+            draw.rounded_rectangle([bx, by0, bx + CB_W, by0 + CB_H], radius=3, fill=bd['bg'])
+            draw.text((bx + CB_W // 2, by0 + CB_H // 2), bd['label'], font=f_badge, fill=bd['text'], anchor='mm')
+
+    verd_x = TABLE_X + LABEL_W + n * DECK_W
+    draw.line([(verd_x, y), (verd_x, y + HEADER_H)], fill=BORDER, width=1)
+    draw.text((verd_x + VERDICT_W // 2, y + HEADER_H // 2),
+              'Verdict', font=f_label, fill=MUTED, anchor='mm')
+
+    y += HEADER_H
+
+    # Data rows
+    for row_label, row_key, row_h, verdict in ROWS:
+        draw.line([(TABLE_X, y), (TABLE_X + CONTENT_W, y)], fill=BORDER, width=1)
+        draw.text((TABLE_X + 8 * SCALE, y + row_h // 2),
+                  row_label.upper(), font=f_label, fill=MUTED, anchor='lm')
+
+        for i, a in enumerate(analyses):
+            col_x = TABLE_X + LABEL_W + i * DECK_W
+            draw.line([(col_x, y), (col_x, y + row_h)], fill=BORDER, width=1)
+            cx = col_x + DECK_W // 2
+            cy = y + row_h // 2
+
+            if row_key == 'bracket':
+                v = (a.get('bracket') or {}).get('bracket')
+                bc = BRACKET_COLOR.get(v, TEXT) if v is not None else MUTED
+                draw.text((cx, cy), str(v) if v is not None else '—', font=f_val, fill=bc, anchor='mm')
+
+            elif row_key == 'speed':
+                v = (a.get('speed') or {}).get('label', '—')
+                draw.text((cx, cy), str(v), font=f_tiny, fill=TEXT, anchor='mm')
+
+            elif row_key == 'wincons':
+                wcs = a.get('win_conditions') or []
+                if wcs:
+                    tp = 4 * SCALE
+                    tg = 3 * SCALE
+                    th = draw.textbbox((0, 0), 'X', font=f_tag)[3]
+                    bh = th + tp * 2
+                    lg = 4 * SCALE
+                    max_w = DECK_W - 8 * SCALE
+                    rows_tags: list[list[tuple[str, int]]] = [[]]
+                    cur_x = 0
+                    for wc in wcs:
+                        tw = draw.textbbox((0, 0), wc, font=f_tag)[2]
+                        bw = tw + tp * 2
+                        if cur_x + bw > max_w and rows_tags[-1]:
+                            if len(rows_tags) >= 2:
+                                break
+                            rows_tags.append([])
+                            cur_x = 0
+                        rows_tags[-1].append((wc, bw))
+                        cur_x += bw + tg
+                    tot_h = len(rows_tags) * bh + (len(rows_tags) - 1) * lg
+                    sy = y + (row_h - tot_h) // 2
+                    for ri, row_tags in enumerate(rows_tags):
+                        rw = sum(bw for _, bw in row_tags) + tg * (len(row_tags) - 1)
+                        rx = col_x + (DECK_W - rw) // 2
+                        ty2 = sy + ri * (bh + lg)
+                        for wc, bw in row_tags:
+                            draw.rounded_rectangle([rx, ty2, rx + bw, ty2 + bh], radius=3, fill=SURFACE, outline=BORDER, width=1)
+                            draw.text((rx + bw // 2, ty2 + bh // 2), wc, font=f_tag, fill=TEXT, anchor='mm')
+                            rx += bw + tg
+                else:
+                    draw.text((cx, cy), '—', font=f_tiny, fill=MUTED, anchor='mm')
+
+            else:
+                ix = a.get('interaction') or {}
+                sp = a.get('speed') or {}
+                val_map = {
+                    'ramp':     sp.get('ramp_count'),
+                    'removal':  ix.get('removal'),
+                    'wipes':    ix.get('board_wipes'),
+                    'counters': ix.get('counterspells'),
+                    'tutors':   ix.get('tutors'),
+                }
+                v = val_map.get(row_key)
+                draw.text((cx, cy), str(v) if v is not None else '—', font=f_val, fill=TEXT, anchor='mm')
+
+        # Verdict cell
+        vx = TABLE_X + LABEL_W + n * DECK_W
+        draw.line([(vx, y), (vx, y + row_h)], fill=BORDER, width=1)
+        if verdict:
+            vc = SEV_COLOR[verdict[1]]
+            vtext = f"{SEV_ICON[verdict[1]]} {verdict[0]}"
+            max_vw = VERDICT_W - 10 * SCALE
+            while draw.textbbox((0, 0), vtext, font=f_vdict)[2] > max_vw and len(vtext) > 4:
+                vtext = vtext[:-1]
+            draw.text((vx + 8 * SCALE, y + row_h // 2), vtext, font=f_vdict, fill=vc, anchor='lm')
+
+        y += row_h
+
+    # Outer table border
+    draw.rounded_rectangle([TABLE_X, TABLE_Y, TABLE_X + CONTENT_W, y],
+                            outline=BORDER, width=1, radius=4 * SCALE)
+
+    # Branding
+    branding = 'pod-calibrator'
+    bw = draw.textbbox((0, 0), branding, font=font(FONT_REG, 11))[2]
+    draw.text((W - PAD - bw, y + 10 * SCALE), branding, font=font(FONT_REG, 11), fill=(30, 58, 95))
+
+    img = img.crop((0, 0, W, y + PAD))
+    out = BytesIO()
+    img.save(out, format='JPEG', quality=92)
+    out.seek(0)
+    return out
+
+
 def generate_comparison_jpeg(analyses, color_mode='deuteranopia'):
     images = []
     for analysis in analyses:

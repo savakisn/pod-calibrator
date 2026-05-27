@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from .routes.import_deck import analyze_from_url
-from .routes.export import generate_export_jpeg, generate_comparison_jpeg
+from .routes.export import generate_export_jpeg, generate_comparison_jpeg, generate_comparison_table_jpeg
 
 app = Flask(__name__)
 CORS(app)
@@ -51,6 +51,21 @@ def export_comparison():
         jpeg_io = generate_comparison_jpeg(analyses, color_mode)
 
         return send_file(jpeg_io, mimetype='image/jpeg', as_attachment=True, download_name='pod-comparison.jpg')
+    except Exception as e:
+        return jsonify({"error": f"Export failed: {str(e)}"}), 500
+
+@app.route("/api/export/table", methods=["POST"])
+def export_table():
+    try:
+        data = request.get_json()
+        analyses = data.get("analyses")
+        if not analyses or len(analyses) < 2:
+            return jsonify({"error": "At least 2 analyses required"}), 400
+
+        color_mode = data.get("colorMode", "deuteranopia")
+        jpeg_io = generate_comparison_table_jpeg(analyses, color_mode)
+
+        return send_file(jpeg_io, mimetype='image/jpeg', as_attachment=True, download_name='pod-comparison-table.jpg')
     except Exception as e:
         return jsonify({"error": f"Export failed: {str(e)}"}), 500
 
