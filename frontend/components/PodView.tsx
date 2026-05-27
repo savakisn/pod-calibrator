@@ -100,7 +100,7 @@ interface RowProps {
 function Row({ label, values, verdict }: RowProps) {
   return (
     <tr className="border-t border-slate-800">
-      <td className="py-2 pr-4 text-xs text-slate-500 uppercase tracking-wider whitespace-nowrap font-medium">{label}</td>
+      <td className="py-2 pl-3 pr-4 text-xs text-slate-500 uppercase tracking-wider whitespace-nowrap font-medium">{label}</td>
       {values.map((v, i) => (
         <td key={i} className="py-2 px-3 text-center text-sm text-slate-200">{v}</td>
       ))}
