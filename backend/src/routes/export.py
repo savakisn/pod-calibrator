@@ -511,6 +511,16 @@ def generate_comparison_table_jpeg(analyses, color_mode='deuteranopia'):
         CB_W = 18 * SCALE
         CB_H = 18 * SCALE
         cb_gap = 3 * SCALE
+        f_cb = f_badge
+        if badge_keys:
+            n_b = len(badge_keys)
+            max_avail = DECK_W - 8 * SCALE
+            total_needed = n_b * CB_W + max(0, n_b - 1) * cb_gap
+            if total_needed > max_avail:
+                r = max_avail / total_needed
+                CB_W = CB_H = int(CB_W * r)
+                cb_gap = int(cb_gap * r)
+                f_cb = font(FONT_BOLD, max(6, int(9 * r)))
         row_w = len(badge_keys) * (CB_W + cb_gap) - cb_gap if badge_keys else 0
         bx0 = col_x + (DECK_W - row_w) // 2
         by0 = y + HEADER_H - CB_H - 10 * SCALE
@@ -519,7 +529,7 @@ def generate_comparison_table_jpeg(analyses, color_mode='deuteranopia'):
             if not bd: continue
             bx = bx0 + bi * (CB_W + cb_gap)
             draw.rounded_rectangle([bx, by0, bx + CB_W, by0 + CB_H], radius=3, fill=bd['bg'])
-            draw.text((bx + CB_W // 2, by0 + CB_H // 2), bd['label'], font=f_badge, fill=bd['text'], anchor='mm')
+            draw.text((bx + CB_W // 2, by0 + CB_H // 2), bd['label'], font=f_cb, fill=bd['text'], anchor='mm')
 
     verd_x = TABLE_X + LABEL_W + n * DECK_W
     draw.line([(verd_x, y), (verd_x, y + HEADER_H)], fill=BORDER, width=1)
