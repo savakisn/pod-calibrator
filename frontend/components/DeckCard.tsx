@@ -59,7 +59,7 @@ export interface DeckAnalysis {
   win_conditions: string[]
 }
 
-export type ColorMode = 'default' | 'tritanopia'
+export type ColorMode = 'protanopia' | 'deuteranopia' | 'tritanopia'
 
 const TYPE_ORDER = ['Creature', 'Planeswalker', 'Instant', 'Sorcery', 'Enchantment', 'Artifact', 'Land', 'Other']
 const SUPERTYPES = new Set(['Basic', 'Legendary', 'Snow', 'World'])
@@ -112,14 +112,23 @@ function Tooltip({ children, content, compact }: { children: React.ReactNode; co
   )
 }
 
-// Per color-mode bracket styling combined into one object
+// Protanopia: no red receptors — avoid red; R→orange, G→cyan
+// Deuteranopia: no green receptors — avoid green; G→violet, R→rose
+// Tritanopia: no blue receptors — avoid blue; U→violet
 const BRACKET_PALETTE: Record<ColorMode, Record<number, { border: string; text: string }>> = {
-  default: {
-    1: { border: 'border-teal-400',    text: 'text-teal-400' },
+  protanopia: {
+    1: { border: 'border-cyan-500',    text: 'text-cyan-400' },
     2: { border: 'border-blue-500',    text: 'text-blue-400' },
-    3: { border: 'border-yellow-400',  text: 'text-yellow-400' },
-    4: { border: 'border-orange-500',  text: 'text-orange-400' },
+    3: { border: 'border-violet-500',  text: 'text-violet-400' },
+    4: { border: 'border-amber-500',   text: 'text-amber-400' },
     5: { border: 'border-fuchsia-500', text: 'text-fuchsia-400' },
+  },
+  deuteranopia: {
+    1: { border: 'border-teal-500',    text: 'text-teal-400' },
+    2: { border: 'border-blue-500',    text: 'text-blue-400' },
+    3: { border: 'border-violet-400',  text: 'text-violet-400' },
+    4: { border: 'border-orange-500',  text: 'text-orange-400' },
+    5: { border: 'border-rose-500',    text: 'text-rose-400' },
   },
   tritanopia: {
     1: { border: 'border-green-500',   text: 'text-green-400' },
@@ -131,11 +140,18 @@ const BRACKET_PALETTE: Record<ColorMode, Record<number, { border: string; text: 
 }
 
 const SPEED_PALETTE: Record<ColorMode, Record<string, string>> = {
-  default: {
-    Turbo:        'bg-fuchsia-900/50 border-fuchsia-700 text-fuchsia-300',
+  protanopia: {
+    Turbo:        'bg-amber-900/50 border-amber-700 text-amber-300',
+    Fast:         'bg-cyan-900/50 border-cyan-700 text-cyan-300',
+    Steady:       'bg-blue-900/50 border-blue-700 text-blue-300',
+    Slow:         'bg-violet-900/50 border-violet-700 text-violet-300',
+    Battlecruiser:'bg-slate-700 border-slate-600 text-slate-300',
+  },
+  deuteranopia: {
+    Turbo:        'bg-rose-900/50 border-rose-700 text-rose-300',
     Fast:         'bg-orange-900/50 border-orange-700 text-orange-300',
-    Steady:       'bg-yellow-900/50 border-yellow-700 text-yellow-300',
-    Slow:         'bg-blue-900/50 border-blue-700 text-blue-300',
+    Steady:       'bg-blue-900/50 border-blue-700 text-blue-300',
+    Slow:         'bg-purple-900/50 border-purple-700 text-purple-300',
     Battlecruiser:'bg-slate-700 border-slate-600 text-slate-300',
   },
   tritanopia: {
@@ -147,14 +163,21 @@ const SPEED_PALETTE: Record<ColorMode, Record<string, string>> = {
   },
 }
 
-// Default: G->amber (high luminance, distinct from blue for RG colorblind)
 const COLOR_BADGE_PALETTE: Record<ColorMode, Record<string, string>> = {
-  default: {
+  protanopia: {
     white:    'bg-amber-50 text-amber-900 border border-amber-200',
     blue:     'bg-blue-600 text-white border border-blue-600',
     black:    'bg-slate-600 text-white border border-slate-600',
-    red:      'bg-rose-600 text-white border border-rose-600',
-    green:    'bg-amber-500 text-white border border-amber-500',
+    red:      'bg-orange-500 text-white border border-orange-500',
+    green:    'bg-cyan-600 text-white border border-cyan-600',
+    colorless:'bg-slate-500 text-white border border-slate-500',
+  },
+  deuteranopia: {
+    white:    'bg-amber-50 text-amber-900 border border-amber-200',
+    blue:     'bg-blue-600 text-white border border-blue-600',
+    black:    'bg-slate-600 text-white border border-slate-600',
+    red:      'bg-rose-500 text-white border border-rose-500',
+    green:    'bg-violet-600 text-white border border-violet-600',
     colorless:'bg-slate-500 text-white border border-slate-500',
   },
   tritanopia: {

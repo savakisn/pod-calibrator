@@ -20,39 +20,65 @@ FONT_REG   = _os.path.join(_FONT_DIR, 'NotoSans-Regular.ttf')
 FONT_BOLD  = _os.path.join(_FONT_DIR, 'NotoSans-Bold.ttf')
 FONT_BLACK = _os.path.join(_FONT_DIR, 'NotoSans-Black.ttf')
 
-# All color-mode-dependent palettes in one place
+# Protanopia: no red receptors — R appears dark; use orange for R, cyan for G
+# Deuteranopia: no green receptors — G appears yellowish; use rose for R, violet for G
+# Tritanopia: no blue receptors — U appears green-ish; use violet for U
 PALETTES = {
-    'default': {
+    'protanopia': {
         'bracket': {
-            1: (20, 184, 166),
-            2: (59, 130, 246),
-            3: (234, 179, 8),
-            4: (249, 115, 22),
-            5: (217, 70, 239),
+            1: (6, 182, 212),    # cyan-500
+            2: (59, 130, 246),   # blue-500
+            3: (139, 92, 246),   # violet-500
+            4: (245, 158, 11),   # amber-500
+            5: (217, 70, 239),   # fuchsia-500
         },
         'speed': {
-            'Turbo':        {'bg': (50,15,45),  'border': (162,28,175), 'text': (240,171,252)},
-            'Fast':         {'bg': (45,16,0),   'border': (154,52,18),  'text': (253,186,116)},
-            'Steady':       {'bg': (45,26,0),   'border': (146,64,14),  'text': (253,230,138)},
-            'Slow':         {'bg': (12,26,58),  'border': (29,78,216),  'text': (147,197,253)},
+            'Turbo':        {'bg': (45,26,0),   'border': (180,120,0),  'text': (253,230,138)},
+            'Fast':         {'bg': (8,35,45),   'border': (14,116,144), 'text': (103,232,249)},
+            'Steady':       {'bg': (12,26,58),  'border': (29,78,216),  'text': (147,197,253)},
+            'Slow':         {'bg': (30,15,60),  'border': (109,40,217), 'text': (196,181,253)},
             'Battlecruiser':{'bg': (30,41,59),  'border': (71,85,105),  'text': (148,163,184)},
         },
         'color_badge': {
             'white':    {'bg': (254,243,199), 'text': (120,53,15),  'label': 'W'},
             'blue':     {'bg': (37,99,235),   'text': (255,255,255), 'label': 'U'},
             'black':    {'bg': (71,85,105),   'text': (255,255,255), 'label': 'B'},
-            'red':      {'bg': (225,29,72),   'text': (255,255,255), 'label': 'R'},
-            'green':    {'bg': (217,119,6),   'text': (255,255,255), 'label': 'G'},
+            'red':      {'bg': (249,115,22),  'text': (255,255,255), 'label': 'R'},
+            'green':    {'bg': (8,145,178),   'text': (255,255,255), 'label': 'G'},
+            'colorless':{'bg': (100,116,139), 'text': (255,255,255), 'label': 'C'},
+        },
+    },
+    'deuteranopia': {
+        'bracket': {
+            1: (20, 184, 166),   # teal-500
+            2: (59, 130, 246),   # blue-500
+            3: (167, 139, 250),  # violet-400
+            4: (249, 115, 22),   # orange-500
+            5: (244, 63, 94),    # rose-500
+        },
+        'speed': {
+            'Turbo':        {'bg': (50,8,20),   'border': (190,18,60),  'text': (253,164,175)},
+            'Fast':         {'bg': (45,16,0),   'border': (154,52,18),  'text': (253,186,116)},
+            'Steady':       {'bg': (12,26,58),  'border': (29,78,216),  'text': (147,197,253)},
+            'Slow':         {'bg': (30,15,50),  'border': (126,34,206), 'text': (216,180,254)},
+            'Battlecruiser':{'bg': (30,41,59),  'border': (71,85,105),  'text': (148,163,184)},
+        },
+        'color_badge': {
+            'white':    {'bg': (254,243,199), 'text': (120,53,15),  'label': 'W'},
+            'blue':     {'bg': (37,99,235),   'text': (255,255,255), 'label': 'U'},
+            'black':    {'bg': (71,85,105),   'text': (255,255,255), 'label': 'B'},
+            'red':      {'bg': (244,63,94),   'text': (255,255,255), 'label': 'R'},
+            'green':    {'bg': (124,58,237),  'text': (255,255,255), 'label': 'G'},
             'colorless':{'bg': (100,116,139), 'text': (255,255,255), 'label': 'C'},
         },
     },
     'tritanopia': {
         'bracket': {
-            1: (34, 197, 94),
-            2: (251, 113, 133),
-            3: (167, 139, 250),
-            4: (249, 115, 22),
-            5: (220, 38, 38),
+            1: (34, 197, 94),    # green-500
+            2: (251, 113, 133),  # rose-400
+            3: (167, 139, 250),  # violet-400
+            4: (249, 115, 22),   # orange-500
+            5: (220, 38, 38),    # red-600
         },
         'speed': {
             'Turbo':        {'bg': (45,8,8),    'border': (153,27,27),  'text': (252,165,165)},
@@ -67,30 +93,6 @@ PALETTES = {
             'black':    {'bg': (71,85,105),   'text': (255,255,255), 'label': 'B'},
             'red':      {'bg': (225,29,72),   'text': (255,255,255), 'label': 'R'},
             'green':    {'bg': (22,163,74),   'text': (255,255,255), 'label': 'G'},
-            'colorless':{'bg': (100,116,139), 'text': (255,255,255), 'label': 'C'},
-        },
-    },
-    'mono': {
-        'bracket': {
-            1: (100, 116, 139),
-            2: (148, 163, 184),
-            3: (203, 213, 225),
-            4: (226, 232, 240),
-            5: (248, 250, 252),
-        },
-        'speed': {
-            'Turbo':        {'bg': (30,41,59), 'border': (248,250,252), 'text': (248,250,252)},
-            'Fast':         {'bg': (30,41,59), 'border': (203,213,225), 'text': (203,213,225)},
-            'Steady':       {'bg': (30,41,59), 'border': (148,163,184), 'text': (148,163,184)},
-            'Slow':         {'bg': (30,41,59), 'border': (100,116,139), 'text': (100,116,139)},
-            'Battlecruiser':{'bg': (30,41,59), 'border': (71,85,105),   'text': (71,85,105)},
-        },
-        'color_badge': {
-            'white':    {'bg': (241,245,249), 'text': (30,41,59),   'label': 'W'},
-            'blue':     {'bg': (148,163,184), 'text': (255,255,255), 'label': 'U'},
-            'black':    {'bg': (30,41,59),    'text': (255,255,255), 'label': 'B'},
-            'red':      {'bg': (203,213,225), 'text': (30,41,59),   'label': 'R'},
-            'green':    {'bg': (71,85,105),   'text': (255,255,255), 'label': 'G'},
             'colorless':{'bg': (100,116,139), 'text': (255,255,255), 'label': 'C'},
         },
     },
@@ -112,8 +114,8 @@ def draw_badge(draw, x, y, text, bg, border, fg, fnt):
     return bw
 
 
-def generate_export_jpeg(analysis, color_mode='default'):
-    palette = PALETTES.get(color_mode, PALETTES['default'])
+def generate_export_jpeg(analysis, color_mode='deuteranopia'):
+    palette = PALETTES.get(color_mode, PALETTES['deuteranopia'])
     BRACKET_COLOR = palette['bracket']
     SPEED_STYLE   = palette['speed']
     COLOR_BADGE   = palette['color_badge']

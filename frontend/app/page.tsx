@@ -22,7 +22,7 @@ export default function Home() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [colorMode, setColorMode] = useState<ColorMode>('default')
+  const [colorMode, setColorMode] = useState<ColorMode>('deuteranopia')
 
   const loadUrls = async (raw: string) => {
     const urls = raw.split(/[\s,]+/).map(u => u.trim()).filter(Boolean)
@@ -102,9 +102,9 @@ export default function Home() {
 
         {decks.length > 0 && (
           <div className="flex gap-1 justify-center mb-6">
-            {(['default', 'tritanopia'] as ColorMode[]).map(mode => (
+            {(['protanopia', 'deuteranopia', 'tritanopia'] as ColorMode[]).map(mode => (
               <button key={mode} onClick={() => setColorMode(mode)} className={`text-xs px-2 py-0.5 rounded border transition-colors ${colorMode === mode ? 'border-slate-500 bg-slate-700 text-slate-200' : 'border-slate-800 text-slate-600 hover:text-slate-400 hover:border-slate-700'}`}>
-                {mode === 'default' ? 'Red/Green' : 'Tritanopia'}
+                {mode === 'protanopia' ? 'Protanopia' : mode === 'deuteranopia' ? 'Deuteranopia' : 'Tritanopia'}
               </button>
             ))}
           </div>
