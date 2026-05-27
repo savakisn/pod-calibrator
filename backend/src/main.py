@@ -1,7 +1,12 @@
+import logging
+import time
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-from .routes.import_deck import analyze_from_url
+from .routes.import_deck import analyze_from_url, DeckImportError
 from .routes.export import generate_export_jpeg, generate_comparison_jpeg, generate_comparison_table_jpeg
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(message)s')
+logger = logging.getLogger("pod-calibrator")
 
 app = Flask(__name__)
 CORS(app)
@@ -12,15 +17,26 @@ def health():
 
 @app.route("/api/import", methods=["POST"])
 def import_deck():
+    started = time.monotonic()
+    url = ""
     try:
-        data = request.get_json()
-        url = data.get("url", "")
-        result = analyze_from_url(url)
+        data = request.get_json() or {}
+        url = (data.get("url") or "").strip()
+        if not url:
+            return jsonify({"error": "No URL provided."}), 400
+        result, cache_hit = analyze_from_url(url)
+        ms = int((time.monotonic() - started) * 1000)
+        logger.info("import url=%s cache_hit=%s ms=%d", url, cache_hit, ms)
+        result["_meta"] = {"cache_hit": cache_hit, "ms": ms}
         return jsonify(result)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-    except Exception as e:
-        return jsonify({"error": f"Failed to fetch deck: {str(e)}"}), 502
+    except DeckImportError as e:
+        ms = int((time.monotonic() - started) * 1000)
+        logger.warning("import_failed url=%s status=%d ms=%d msg=%s", url, e.status_code, ms, e)
+        return jsonify({"error": str(e)}), e.status_code
+    except Exception:
+        ms = int((time.monotonic() - started) * 1000)
+        logger.exception("import_error url=%s ms=%d", url, ms)
+        return jsonify({"error": "Something went wrong. Try again in a moment."}), 502
 
 @app.route("/api/export", methods=["POST"])
 def export_card():

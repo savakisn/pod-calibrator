@@ -57,6 +57,7 @@ export interface DeckAnalysis {
   detected_combos: unknown[]
   precon_match?: string
   win_conditions: string[]
+  _meta?: { cache_hit: boolean; ms: number }
 }
 
 export type ColorMode = 'protanopia' | 'deuteranopia' | 'tritanopia'

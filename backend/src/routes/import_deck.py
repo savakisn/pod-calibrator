@@ -32,6 +32,26 @@ from ..services.speed import analyze_speed
 from ..services.wincon import detect_win_conditions
 from ..services.interaction import analyze_interaction
 
+
+class DeckImportError(Exception):
+    """Deck-import failure with a user-friendly message and HTTP status."""
+    def __init__(self, message: str, status_code: int = 502):
+        super().__init__(message)
+        self.status_code = status_code
+
+
+def _wrap_http_error(e: httpx.HTTPStatusError, source: str) -> DeckImportError:
+    code = e.response.status_code
+    if code == 404:
+        return DeckImportError(f"Deck not found on {source}.", status_code=404)
+    if code in (401, 403):
+        return DeckImportError(f"Deck is private on {source}.", status_code=403)
+    return DeckImportError(f"{source} returned an error ({code}). Try again shortly.", status_code=502)
+
+
+def _wrap_transport_error(source: str) -> DeckImportError:
+    return DeckImportError(f"{source} is not responding. Try again in a moment.", status_code=504)
+
 MOXFIELD_HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "application/json",
@@ -137,19 +157,24 @@ def _extract_moxfield_id(url: str) -> Optional[str]:
 
 
 def _fetch_moxfield(deck_id: str) -> dict:
-    with httpx.Client(timeout=15) as client:
-        resp = client.get(
-            f"https://api2.moxfield.com/v2/decks/all/{deck_id}",
-            headers=MOXFIELD_HEADERS,
-        )
-        resp.raise_for_status()
-        return resp.json()
+    try:
+        with httpx.Client(timeout=15) as client:
+            resp = client.get(
+                f"https://api2.moxfield.com/v2/decks/all/{deck_id}",
+                headers=MOXFIELD_HEADERS,
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPStatusError as e:
+        raise _wrap_http_error(e, "Moxfield") from e
+    except (httpx.TimeoutException, httpx.TransportError):
+        raise _wrap_transport_error("Moxfield")
 
 
 def analyze_from_moxfield(url: str) -> dict:
     deck_id = _extract_moxfield_id(url)
     if not deck_id:
-        raise ValueError("Invalid Moxfield URL")
+        raise DeckImportError("That doesn't look like a Moxfield deck URL.", status_code=400)
 
     data = _fetch_moxfield(deck_id)
     commanders = data.get("commanders", {})
@@ -184,19 +209,24 @@ def _extract_archidekt_id(url: str) -> Optional[str]:
 
 
 def _fetch_archidekt(deck_id: str) -> dict:
-    with httpx.Client(timeout=15) as client:
-        resp = client.get(
-            f"https://archidekt.com/api/decks/{deck_id}/",
-            headers=MOXFIELD_HEADERS,
-        )
-        resp.raise_for_status()
-        return resp.json()
+    try:
+        with httpx.Client(timeout=15) as client:
+            resp = client.get(
+                f"https://archidekt.com/api/decks/{deck_id}/",
+                headers=MOXFIELD_HEADERS,
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPStatusError as e:
+        raise _wrap_http_error(e, "Archidekt") from e
+    except (httpx.TimeoutException, httpx.TransportError):
+        raise _wrap_transport_error("Archidekt")
 
 
 def analyze_from_archidekt(url: str) -> dict:
     deck_id = _extract_archidekt_id(url)
     if not deck_id:
-        raise ValueError("Invalid Archidekt URL")
+        raise DeckImportError("That doesn't look like an Archidekt deck URL.", status_code=400)
 
     data = _fetch_archidekt(deck_id)
     entries = []
@@ -227,15 +257,16 @@ def analyze_from_archidekt(url: str) -> dict:
 
 # --- Generic dispatcher ---
 
-def analyze_from_url(url: str) -> dict:
+def analyze_from_url(url: str) -> tuple[dict, bool]:
+    """Returns (analysis, cache_hit)."""
     cached = _cache_get(url)
-    if cached:
-        return cached
+    if cached is not None:
+        return cached, True
     if "moxfield.com" in url:
         result = analyze_from_moxfield(url)
     elif "archidekt.com" in url:
         result = analyze_from_archidekt(url)
     else:
-        raise ValueError("Unsupported site. Supported: Moxfield, Archidekt")
+        raise DeckImportError("Unsupported site. Use Moxfield or Archidekt.", status_code=400)
     _cache_set(url, result)
-    return result
+    return result, False
