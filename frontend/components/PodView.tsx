@@ -67,7 +67,7 @@ function winconVerdict(decks: DeckAnalysis[]): Verdict {
       counts[wc] = (counts[wc] ?? 0) + 1
     }
   }
-  const overlaps = Object.entries(counts).filter(([, n]) => n >= Math.ceil(decks.length / 2))
+  const overlaps = Object.entries(counts).filter(([, n]) => n >= Math.max(2, Math.ceil(decks.length / 2)))
   if (!overlaps.length) return { label: 'Diverse', severity: 'ok' }
   const names = overlaps.map(([k]) => k).join(', ')
   if (overlaps.some(([, n]) => n >= decks.length - 1)) return { label: `Heavy ${names} overlap`, severity: 'danger' }
