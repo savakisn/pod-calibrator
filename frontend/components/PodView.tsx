@@ -135,8 +135,8 @@ export default function PodView({ decks, onRemove }: { decks: DeckAnalysis[]; on
       </div>
 
       {/* Comparison table */}
-      <div className="overflow-x-auto">
-        <table className="w-full bg-slate-900 border border-slate-700 rounded-xl">
+      <div className="overflow-x-auto border border-slate-700 rounded-xl">
+        <table className="w-full bg-slate-900">
           <thead>
             <tr>
               <th className="p-3 text-left text-xs text-slate-500 uppercase tracking-wider align-bottom">Commander</th>
