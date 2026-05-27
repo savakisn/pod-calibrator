@@ -247,7 +247,7 @@ export default function DeckCard({ analysis }: { analysis: DeckAnalysis | null }
       const filename = res.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'deck-pod-calibrator.jpg'
       const file = new File([blob], filename, { type: 'image/jpeg' })
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: filename })
+        await navigator.share({ files: [file] })
       } else {
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
