@@ -127,7 +127,7 @@ export default function Home() {
 
         {/* Pod view */}
         {isPod && (
-          <PodView decks={decks} onRemove={removeDeck} />
+          <PodView decks={decks} onRemove={removeDeck} colorMode={colorMode} />
         )}
 
       </div>

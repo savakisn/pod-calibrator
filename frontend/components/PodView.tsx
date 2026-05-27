@@ -1,6 +1,7 @@
 'use client'
 
-import type { DeckAnalysis } from './DeckCard'
+import type { DeckAnalysis, ColorMode } from './DeckCard'
+import { COLOR_BADGE_PALETTE } from './DeckCard'
 
 const SPEED_TIER: Record<string, number> = {
   Turbo: 0, Fast: 1, Steady: 2, Slow: 3, Battlecruiser: 4,
@@ -11,14 +12,6 @@ const COLOR_SYMBOLS: Record<string, string> = {
   white: 'W', blue: 'U', black: 'B', red: 'R', green: 'G', colorless: 'C',
 }
 const COLOR_ORDER = ['white', 'blue', 'black', 'red', 'green', 'colorless']
-const COLOR_CLASSES: Record<string, string> = {
-  white: 'bg-amber-50 text-amber-900 border border-amber-200',
-  blue: 'bg-blue-600 text-white border border-blue-600',
-  black: 'bg-slate-600 text-white border border-slate-600',
-  red: 'bg-rose-600 text-white border border-rose-600',
-  green: 'bg-amber-500 text-white border border-amber-500',
-  colorless: 'bg-slate-500 text-white border border-slate-500',
-}
 
 type Severity = 'ok' | 'warn' | 'danger'
 
@@ -113,12 +106,59 @@ function Row({ label, values, verdict }: RowProps) {
   )
 }
 
-export default function PodView({ decks, onRemove }: { decks: DeckAnalysis[]; onRemove: (i: number) => void }) {
+async function doExport(blob: Blob, filename: string) {
+  const file = new File([blob], filename, { type: 'image/jpeg' })
+  if (navigator.canShare?.({ files: [file] })) {
+    await navigator.share({ files: [file] })
+  } else {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+}
+
+export default function PodView({ decks, onRemove, colorMode }: { decks: DeckAnalysis[]; onRemove: (i: number) => void; colorMode: ColorMode }) {
   const bv = bracketVerdict(decks)
   const sv = speedVerdict(decks)
   const wv = winconVerdict(decks)
   const iv = interactionVerdict(decks)
   const ov = overallVerdict([bv, sv, wv, iv])
+
+  const colorBadge = COLOR_BADGE_PALETTE[colorMode]
+
+  const exportDeck = async (deck: DeckAnalysis) => {
+    try {
+      const res = await fetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analysis: deck, colorMode }),
+      })
+      if (!res.ok) return
+      const blob = await res.blob()
+      const filename = res.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'deck.jpg'
+      await doExport(blob, filename)
+    } catch (e) {
+      if (e instanceof Error && e.name !== 'AbortError') alert('Export failed')
+    }
+  }
+
+  const exportComparison = async () => {
+    try {
+      const res = await fetch('/api/export/comparison', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analyses: decks, colorMode }),
+      })
+      if (!res.ok) return
+      const blob = await res.blob()
+      await doExport(blob, 'pod-comparison.jpg')
+    } catch (e) {
+      if (e instanceof Error && e.name !== 'AbortError') alert('Export failed')
+    }
+  }
 
   return (
     <div className="w-full">
@@ -132,6 +172,12 @@ export default function PodView({ decks, onRemove }: { decks: DeckAnalysis[]; on
         <span className="text-lg">{icon(ov.severity)}</span>
         {ov.label}
         <span className="ml-auto font-normal text-xs opacity-70">{decks.length} decks in pod</span>
+        <button
+          onClick={exportComparison}
+          className="font-normal text-xs text-slate-500 hover:text-amber-400 border border-slate-700 hover:border-amber-700/50 rounded px-2 py-0.5 transition-colors"
+        >
+          Export All
+        </button>
       </div>
 
       {/* Comparison table */}
@@ -167,11 +213,17 @@ export default function PodView({ decks, onRemove }: { decks: DeckAnalysis[]; on
                     </div>
                     <div className="flex justify-center gap-0.5 mt-1">
                       {colorKeys.map(c => (
-                        <span key={c} className={`text-xs font-black w-5 h-5 inline-flex items-center justify-center rounded ${COLOR_CLASSES[c]}`}>
+                        <span key={c} className={`text-xs font-black w-5 h-5 inline-flex items-center justify-center rounded ${colorBadge[c] ?? 'bg-slate-500 text-white border border-slate-500'}`}>
                           {COLOR_SYMBOLS[c]}
                         </span>
                       ))}
                     </div>
+                    <button
+                      onClick={() => exportDeck(d)}
+                      className="mt-2 text-xs text-slate-600 hover:text-amber-400 transition-colors"
+                    >
+                      Export
+                    </button>
                   </th>
                 )
               })}

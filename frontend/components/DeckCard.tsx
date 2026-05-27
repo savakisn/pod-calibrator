@@ -163,7 +163,7 @@ const SPEED_PALETTE: Record<ColorMode, Record<string, string>> = {
   },
 }
 
-const COLOR_BADGE_PALETTE: Record<ColorMode, Record<string, string>> = {
+export const COLOR_BADGE_PALETTE: Record<ColorMode, Record<string, string>> = {
   protanopia: {
     white:    'bg-amber-50 text-amber-900 border border-amber-200',
     blue:     'bg-blue-600 text-white border border-blue-600',
