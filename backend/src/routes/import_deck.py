@@ -230,9 +230,12 @@ def analyze_from_archidekt(url: str) -> dict:
 
     data = _fetch_archidekt(deck_id)
     entries = []
+    excluded_keywords = ("sideboard", "maybeboard", "considering", "token", "extras", "reference", "cuts")
 
     for entry in data.get("cards", []):
         categories = entry.get("categories", [])
+        if any(any(kw in c.lower() for kw in excluded_keywords) for c in categories):
+            continue
         oracle = entry["card"]["oracleCard"]
         name = oracle["name"]
 
