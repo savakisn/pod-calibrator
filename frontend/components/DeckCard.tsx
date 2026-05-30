@@ -342,7 +342,7 @@ export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalys
             </div>
           </div>
           <div className="space-y-1 text-sm text-slate-400">
-            {bracket.game_changers_found.length > 0 && <div><span className="text-slate-500">Found: </span>{bracket.game_changers_found.join(', ')}</div>}
+            {bracket.game_changers_found.length > 0 && <div><span className="text-slate-500">Game changers: </span>{bracket.game_changers_found.join(', ')}</div>}
             {bracket.mass_land_denial.length > 0 && <div><span className="text-slate-500">MLD: </span>{bracket.mass_land_denial.join(', ')}</div>}
             {bracket.extra_turns.length > 0 && <div><span className="text-slate-500">Extra turns: </span>{bracket.extra_turns.join(', ')}</div>}
           </div>
@@ -350,10 +350,10 @@ export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalys
             <div className="mt-3 pt-3 border-t border-slate-700/50 space-y-2">
               <div className="text-xs text-slate-500 uppercase tracking-wider">{bracket.combos.length} combo{bracket.combos.length !== 1 ? 's' : ''} detected</div>
               {bracket.combos.map((combo, i) => (
-                <div key={i} className="text-sm">
+                <div key={`${combo.produces.join('|')}:${i}`} className="text-sm">
                   <div className="text-slate-600 text-xs mb-0.5">{combo.produces.join(', ')}</div>
                   {combo.lines.map((cards, j) => (
-                    <div key={j} className="text-slate-300 font-medium">{cards.join(' + ')}</div>
+                    <div key={cards.join('+')} className="text-slate-300 font-medium">{cards.join(' + ')}</div>
                   ))}
                 </div>
               ))}

@@ -15,7 +15,7 @@ def _bracket_from_counts(gc_count: int, has_combo: bool, avg_cmc: float, has_mld
 
 
 def _group_combos(combos_raw: list) -> list:
-    """Group combos by what they produce. Each group shows all card combinations."""
+    """Group combos by what they produce. Dedupe identical card-lists within a group."""
     groups = {}
     for entry in combos_raw:
         combo = entry.get("combo", {})
@@ -23,7 +23,11 @@ def _group_combos(combos_raw: list) -> list:
         produces = sorted(p["feature"]["name"] for p in combo.get("produces", []))
         key = tuple(produces)
         if key not in groups:
-            groups[key] = {"produces": list(produces), "lines": []}
+            groups[key] = {"produces": list(produces), "lines": [], "seen": set()}
+        line_key = tuple(cards_used)
+        if line_key in groups[key]["seen"]:
+            continue
+        groups[key]["seen"].add(line_key)
         groups[key]["lines"].append(cards_used)
 
     return [{"produces": g["produces"], "lines": g["lines"]} for g in groups.values()]
@@ -46,9 +50,9 @@ def estimate_bracket(commander_names: list[str], main_names: list[str], avg_cmc:
     cards = data.get("cards", [])
     combos_raw = data.get("combos", [])
 
-    game_changers = [c["card"]["name"] for c in cards if c.get("gameChanger")]
-    mld = [c["card"]["name"] for c in cards if c.get("massLandDenial")]
-    extra_turns = [c["card"]["name"] for c in cards if c.get("extraTurn")]
+    game_changers = sorted({c["card"]["name"] for c in cards if c.get("gameChanger")})
+    mld = sorted({c["card"]["name"] for c in cards if c.get("massLandDenial")})
+    extra_turns = sorted({c["card"]["name"] for c in cards if c.get("extraTurn")})
     has_combo = len(combos_raw) > 0
 
     bracket = _bracket_from_counts(len(game_changers), has_combo, avg_cmc, bool(mld), bool(extra_turns))
