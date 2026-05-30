@@ -213,19 +213,30 @@ const SPEED_DESC: Record<string, string> = {
   Battlecruiser:'Very high curve, wants long games and big spells. Will likely struggle against faster pods.',
 }
 
-const WIN_TOOLTIP: Record<string, string> = {
+const WIN_TOOLTIP_GENERIC: Record<string, string> = {
   Combo:        'Active infinite combo lines detected via Spellbook.',
-  Tokens:       'Multiple token producers or doublers detected (e.g. Parallel Lives, Anointed Procession).',
-  Aristocrats:  '3+ death-trigger payoffs detected (e.g. Blood Artist, Grave Pact).',
-  Reanimator:   '3+ graveyard recursion spells detected.',
-  Voltron:      '4+ equipment or aura pieces detected.',
-  Stax:         '3+ tax or lock pieces detected (e.g. Winter Orb, Sphere of Resistance).',
-  Lifegain:     '2+ life-total payoffs detected (e.g. Aetherflux Reservoir, Serra Ascendant).',
-  Spellslinger: 'High instant/sorcery ratio with payoff cards detected (e.g. Guttersnipe, Talrand).',
-  Superfriends: 'Commander implies a planeswalker-focused strategy.',
+  Tokens:       'Multiple token producers or doublers detected.',
+  Aristocrats:  'Death-trigger payoffs detected.',
+  Reanimator:   'Graveyard recursion package detected.',
+  Voltron:      'Equipment or aura package detected.',
+  Stax:         'Tax or lock pieces detected.',
+  Lifegain:     'Life-total payoffs detected.',
+  Spellslinger: 'High instant/sorcery ratio with payoff cards.',
+  Superfriends: 'Planeswalker-focused strategy detected.',
+  Burn:         'Direct-damage payoffs or burn spells detected.',
+  Dungeon:      'Venture-into-the-dungeon cards detected.',
   Tribal:       'Tribal synergy detected via commander or card density.',
   Landfall:     'Land-based engine detected via commander.',
   Goodstuff:    'No single dominant strategy detected. Relies on card quality and flexible interaction.',
+}
+
+function winconTooltip(wc: string, diagnostics?: DeckAnalysis['_diagnostics']): string {
+  const generic = WIN_TOOLTIP_GENERIC[wc] ?? wc
+  const matched = diagnostics?.wincons?.[wc]
+  if (!matched || matched.length === 0) return generic
+  const preview = matched.slice(0, 4).join(', ')
+  const more = matched.length > 4 ? `, +${matched.length - 4} more` : ''
+  return `${generic} Found: ${preview}${more}.`
 }
 
 export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalysis | null; colorMode: ColorMode }) {
@@ -323,7 +334,7 @@ export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalys
           const hasConfirmedCombos = (analysis.bracket?.combos?.length ?? 0) > 0
           const tooltip = wc === 'Combo'
             ? (hasConfirmedCombos ? 'Active infinite combo lines detected via Spellbook.' : 'Commander strategy suggests combo potential. No specific lines confirmed by Spellbook.')
-            : (WIN_TOOLTIP[wc] ?? wc)
+            : winconTooltip(wc, analysis._diagnostics)
           return (
             <Tooltip key={wc} content={tooltip}>
               <span className="text-xs px-2 py-0.5 rounded border font-semibold bg-slate-800 text-slate-300 border-slate-600 cursor-help">{wc}</span>
