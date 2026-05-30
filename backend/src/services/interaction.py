@@ -38,6 +38,10 @@ REMOVAL = {
     "Indrik Stomphowler", "Acidic Slime", "Pest Infestation",
     "Aura Shards", "Collector Ouphe", "Ouphe Vandals",
     "Skullwinder",
+    "Terastodon", "Woodfall Primus", "World Breaker", "Thrashing Brontodon",
+    "Ram Through", "Prey Upon", "Hunt the Hunter", "Savage Smash",
+    "Pounce", "Setessan Tactics", "Hunt Down", "Ulvenwald Tracker",
+    "Rabid Bite", "Tail Swipe", "Inscription of Abundance",
     # Multi
     "Anguished Unmaking", "Assassin's Trophy", "Vindicate",
     "Utter End", "Despark", "Price of Fame", "Bedevil",
