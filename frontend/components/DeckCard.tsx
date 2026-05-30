@@ -342,7 +342,9 @@ export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalys
           )
         })}
         {analysis.speed && (
-          <span className="text-xs text-slate-600">{analysis.speed.avg_nonland_cmc} avg CMC · {analysis.speed.ramp_count} ramp pieces</span>
+          <Tooltip content="Average CMC of non-land cards. The speed badge uses this value, adjusted for ramp.">
+            <span className="text-xs text-slate-600 cursor-help">{analysis.speed.avg_nonland_cmc} non-land CMC · {analysis.speed.ramp_count} ramp pieces</span>
+          </Tooltip>
         )}
       </div>
 
