@@ -145,8 +145,12 @@ TUTORS = {
 }
 
 
+def _front_face(name: str) -> str:
+    return name.split(" // ", 1)[0].strip()
+
+
 def analyze_interaction(cards: list) -> dict:
-    names = {c["name"] for c in cards}
+    names = {_front_face(c["name"]) for c in cards}
     return {
         "removal": len(names & REMOVAL),
         "removal_cards": sorted(names & REMOVAL),

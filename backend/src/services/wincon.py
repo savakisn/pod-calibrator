@@ -322,6 +322,10 @@ CATEGORY_SETS = {
 }
 
 
+def _front_face(name: str) -> str:
+    return name.split(" // ", 1)[0].strip()
+
+
 def detect_win_conditions(
     cards: list,
     card_types: dict,
@@ -329,12 +333,12 @@ def detect_win_conditions(
     commander_name: str | None = None,
 ) -> tuple[list, dict]:
     """Returns (wins, diagnostics). Diagnostics maps category -> matched card names."""
-    names = {c["name"] for c in cards}
+    names = {_front_face(c["name"]) for c in cards}
     wins: list[str] = []
 
     # Commander lookup goes first - highest confidence signal
     if commander_name:
-        for strategy in COMMANDER_STRATEGIES.get(commander_name, []):
+        for strategy in COMMANDER_STRATEGIES.get(_front_face(commander_name), []):
             if strategy not in wins:
                 wins.append(strategy)
 
@@ -385,7 +389,7 @@ def detect_win_conditions(
 
     pw_count = sum(c.get("quantity", 1) for c in cards if "Planeswalker" in (c.get("type_line") or ""))
     proliferate_count = len(names & PROLIFERATE_ENABLERS)
-    is_emblem_cmd = commander_name in EMBLEM_COMMANDERS
+    is_emblem_cmd = bool(commander_name) and _front_face(commander_name) in EMBLEM_COMMANDERS
     if "Superfriends" not in wins and (
         pw_count >= 5
         or (pw_count >= 3 and proliferate_count >= 2)
