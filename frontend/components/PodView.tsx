@@ -58,7 +58,7 @@ function winconVerdict(decks: DeckAnalysis[]): Verdict {
   const counts: Record<string, number> = {}
   for (const d of decks) {
     for (const wc of d.win_conditions ?? []) {
-      if (wc === 'Goodstuff') continue
+      if (wc === 'Goodstuff' || wc === 'Combo') continue
       counts[wc] = (counts[wc] ?? 0) + 1
     }
   }
