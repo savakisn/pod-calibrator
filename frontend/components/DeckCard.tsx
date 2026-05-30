@@ -324,7 +324,7 @@ export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalys
       {/* Speed + Win Conditions */}
       <div className="flex flex-wrap items-center gap-2 mb-7">
         {analysis.speed && (
-          <Tooltip content={<><div className="mb-1">{SPEED_DESC[analysis.speed.label]}</div><div className="text-slate-500">avg non-land CMC: {analysis.speed.avg_nonland_cmc} · ramp pieces: {analysis.speed.ramp_count}</div></>}>
+          <Tooltip content={<><div className="mb-1">{SPEED_DESC[analysis.speed.label]}</div><div className="text-slate-500 mb-1">avg non-land CMC: {analysis.speed.avg_nonland_cmc} · ramp pieces: {analysis.speed.ramp_count}</div><div className="text-slate-600 text-[10px]">Score = non-land CMC − (0.05 × ramp). Thresholds: &lt;1.8 Turbo, &lt;2.4 Fast, &lt;3.1 Steady, &lt;3.7 Slow, ≥3.7 Battlecruiser. One heuristic, not gospel.</div></>}>
             <span className={`text-xs px-2 py-0.5 rounded border font-bold tracking-wide cursor-help ${speedCls[analysis.speed.label] || ''}`}>
               {analysis.speed.label}
             </span>
@@ -354,7 +354,9 @@ export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalys
       )}
       {bracket && !bracket.error && (
         <div className="mb-5">
-          <div className="text-xs text-slate-500 uppercase tracking-wider leading-none mb-1">Bracket</div>
+          <Tooltip content="Bracket score from Commander Spellbook. Reflects game changers, combos, mass land denial, and extra turns. Different sources can score the same deck differently — treat this as one informed opinion, not absolute truth.">
+            <div className="text-xs text-slate-500 uppercase tracking-wider leading-none mb-1 cursor-help inline-block">Bracket <span className="text-slate-700">?</span></div>
+          </Tooltip>
           <div className={`border-l-4 pl-4 py-1 ${bracketPalette[bracket.bracket].border}`}>
           <div className="flex items-end gap-3 mb-2">
             <span className={`text-5xl font-black leading-none ${bracketPalette[bracket.bracket].text}`}>{bracket.bracket}</span>
