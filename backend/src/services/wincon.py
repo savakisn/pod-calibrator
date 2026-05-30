@@ -92,6 +92,76 @@ LIFEGAIN = {
     "Dina, Soul Steeper", "Speaker of the Heavens",
 }
 
+BURN_SPELLS = {
+    "Lightning Bolt", "Lava Spike", "Skewer the Critics", "Bonecrusher Giant",
+    "Fireball", "Comet Storm", "Banefire", "Earthquake", "Rolling Earthquake",
+    "Blasphemous Act", "Sulfurous Blast", "Star of Extinction", "Devil's Play",
+    "Crackle with Power", "Searing Blaze", "Searing Spear", "Lava Coil",
+    "Lightning Strike", "Shock", "Wizard's Lightning", "Skred",
+    "Chain Lightning", "Forked Bolt", "Magma Jet", "Incinerate",
+    "Lightning Helix", "Boros Charm", "Pyroclasm", "Anger of the Gods",
+    "Volcanic Fallout", "Sulfuric Vortex", "Pyrostatic Pillar",
+    "Eidolon of the Great Revel", "Price of Progress", "Fiery Confluence",
+    "Volcanic Vision", "Disintegrate", "Demonfire", "Bonfire of the Damned",
+    "Fall of the Titans", "Red Sun's Zenith", "Cathartic Reunion",
+    "Hurricane", "Squall Line",
+}
+
+BURN_PAYOFFS = {
+    "Torbran, Thane of Red Fell", "Zada, Hedron Grinder", "Heartless Hidetsugu",
+    "Toralf, God of Fury", "Neheb, the Eternal", "Neheb, Dreadhorde Champion",
+    "Purphoros, God of the Forge", "Obosh, the Preypiercer", "The Locust God",
+    "Syr Carah, the Bold", "Pia Nalaar, Consul of Revival", "Krark, the Thumbless",
+    "Firesong and Sunspeaker", "Hazoret the Fervent", "Etali, Primal Storm",
+    "Etali, Primal Conqueror", "Vivi Ornitier", "Galvanic Iteration",
+    "Repercussion", "Pyromancer's Goggles", "Magus of the Wheel",
+    "Sunscorched Desert", "Manabarbs", "Spellshock",
+    "Quest for Pure Flame", "Solphim, Mayhem Dominus", "Dragon Tempest",
+    "Sarkhan, Soul Aflame", "Furnace of Rath", "Gratuitous Violence",
+    "Dictate of the Twin Gods", "Embermaw Hellion", "Ashling the Pilgrim",
+    "Mishra, Lost to Phyrexia",
+}
+
+DUNGEON_CARDS = {
+    "Acererak the Archlich", "Caves of Chaos Adventurer", "Tomb of Annihilation",
+    "Nadaar, Selfless Paladin", "Varis, Silverymoon Ranger", "Wizards of Thay",
+    "Lost Mine of Phandelver", "Dungeon Map", "Bar the Gate",
+    "Cloister Gargoyle", "Curious Pair", "Den of the Bugbear",
+    "Eyes of the Beholder", "Far Traveler", "Foreboding Statue",
+    "Goggles of Night", "Hama Pashar, Ruin Seeker", "Hive of the Eye Tyrant",
+    "Hoard Robber", "Icingdeath, Frost Tyrant", "Inferno of the Star Mounts",
+    "Karazikar, the Eye Tyrant", "Lair of the Hydra", "Long Rest",
+    "Minion of the Mighty", "Minsc, Beloved Ranger", "Nivix Cyclops",
+    "Plumb the Forbidden", "Prosperous Innkeeper", "Ranger Class",
+    "Reaper's Talisman", "Sefris of the Hidden Ways", "Skullport Merchant",
+    "Stalwart Valkyrie", "Tavern Scoundrel", "Treasure Chest",
+    "Triumphant Adventurer", "Yuan-Ti Malison", "Yuan-Ti Vipers",
+    "You Find a Cursed Idol", "You Hear Something on Watch",
+    "Reaper of the Hidden Ways", "Cellar Door",
+}
+
+PROLIFERATE_ENABLERS = {
+    "Atraxa, Praetors' Voice", "Atraxa, Grand Unifier", "Tezzeret's Gambit",
+    "Inexorable Tide", "Flux Channeler", "Karn's Bastion", "Contagion Engine",
+    "Contagion Clasp", "Steady Progress", "Throne of Geth",
+    "Tezzeret, Agent of Bolas", "Sword of Truth and Justice",
+    "Roalesk, Apex Hybrid", "Yawgmoth, Thran Physician",
+    "Volt Charge", "Plaguemaw Beast", "Viral Drake",
+    "Pir, Imaginative Rascal", "Toothy, Imaginary Friend",
+    "Evolution Sage", "Vorinclex, Monstrous Raider", "Fuel for the Cause",
+    "Tatyova, Steward of Tides", "Drown in Ichor",
+}
+
+EMBLEM_COMMANDERS = {
+    "Atraxa, Praetors' Voice", "Atraxa, Grand Unifier", "Tom Bombadil",
+    "Estrid the Masked", "Aminatou, the Fateshifter", "Teyo, Geometric Tactician",
+    "Tamiyo, Compleated Sage", "Tezzeret the Schemer", "Daretti, Scrap Savant",
+    "Narset, Enlightened Master", "Freyalise, Llanowar's Fury",
+    "Carth the Lion", "Djeru, With Eyes Open", "Saheeli, the Gifted",
+    "Jared Carthalion, True Heir", "Ob Nixilis of the Black Oath",
+    "Vraska, Relic Seeker",
+}
+
 SPELLSLINGER_PAYOFFS = {
     "Talrand, Sky Summoner", "Young Pyromancer", "Monastery Mentor",
     "Guttersnipe", "Murmuring Mystic", "Metallurgic Summonings",
@@ -184,8 +254,40 @@ COMMANDER_STRATEGIES: dict[str, list[str]] = {
     "Food Chain": ["Combo"],
     # Superfriends / Proliferate
     "Atraxa, Praetors' Voice": ["Superfriends"],
+    "Atraxa, Grand Unifier": ["Superfriends"],
     "Djeru, With Eyes Open": ["Superfriends"],
     "Carth the Lion": ["Superfriends"],
+    "Tom Bombadil": ["Superfriends"],
+    "Estrid the Masked": ["Superfriends"],
+    "Aminatou, the Fateshifter": ["Superfriends"],
+    "Tamiyo, Compleated Sage": ["Superfriends"],
+    "Saheeli, the Gifted": ["Superfriends"],
+    "Jared Carthalion, True Heir": ["Superfriends"],
+    "Freyalise, Llanowar's Fury": ["Superfriends"],
+    # Burn
+    "Torbran, Thane of Red Fell": ["Burn"],
+    "Heartless Hidetsugu": ["Burn"],
+    "Toralf, God of Fury": ["Burn"],
+    "Neheb, the Eternal": ["Burn"],
+    "Purphoros, God of the Forge": ["Burn", "Tokens"],
+    "Obosh, the Preypiercer": ["Burn"],
+    "The Locust God": ["Burn", "Combo"],
+    "Syr Carah, the Bold": ["Burn"],
+    "Krark, the Thumbless": ["Burn", "Spellslinger"],
+    "Firesong and Sunspeaker": ["Burn"],
+    "Vivi Ornitier": ["Burn", "Spellslinger"],
+    "Solphim, Mayhem Dominus": ["Burn"],
+    "Hazoret the Fervent": ["Burn"],
+    "Zada, Hedron Grinder": ["Burn", "Spellslinger"],
+    # Dungeon
+    "Acererak the Archlich": ["Dungeon"],
+    "Sefris of the Hidden Ways": ["Dungeon", "Reanimator"],
+    "Nadaar, Selfless Paladin": ["Dungeon"],
+    "Varis, Silverymoon Ranger": ["Dungeon"],
+    "Wizards of Thay": ["Dungeon"],
+    "Hama Pashar, Ruin Seeker": ["Dungeon"],
+    "Minsc, Beloved Ranger": ["Dungeon"],
+    "Karazikar, the Eye Tyrant": ["Dungeon"],
     # Tribal
     "The Ur-Dragon": ["Tribal"],
     "Animar, Soul of Elements": ["Tribal", "Combo"],
@@ -257,6 +359,24 @@ def detect_win_conditions(
     has_payoff = bool(names & SPELLSLINGER_PAYOFFS)
     if spell_ratio >= 0.35 and has_payoff and "Spellslinger" not in wins:
         wins.append("Spellslinger")
+
+    burn_spells = len(names & BURN_SPELLS)
+    has_burn_payoff = bool(names & BURN_PAYOFFS)
+    if (has_burn_payoff or burn_spells >= threshold("Burn", 4)) and "Burn" not in wins:
+        wins.append("Burn")
+
+    if len(names & DUNGEON_CARDS) >= threshold("Dungeon", 2) and "Dungeon" not in wins:
+        wins.append("Dungeon")
+
+    pw_count = sum(c.get("quantity", 1) for c in cards if "Planeswalker" in (c.get("type_line") or ""))
+    proliferate_count = len(names & PROLIFERATE_ENABLERS)
+    is_emblem_cmd = commander_name in EMBLEM_COMMANDERS
+    if "Superfriends" not in wins and (
+        pw_count >= 5
+        or (pw_count >= 3 and proliferate_count >= 2)
+        or (is_emblem_cmd and pw_count >= 2)
+    ):
+        wins.append("Superfriends")
 
     if not wins:
         wins.append("Goodstuff")
