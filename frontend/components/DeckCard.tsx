@@ -374,12 +374,18 @@ export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalys
             <div className="mt-3 pt-3 border-t border-slate-700/50 space-y-2">
               <div className="text-xs text-slate-500 uppercase tracking-wider">{bracket.combos.length} combo{bracket.combos.length !== 1 ? 's' : ''} detected</div>
               {bracket.combos.map((combo, i) => (
-                <div key={`${combo.produces.join('|')}:${i}`} className="text-sm">
-                  <div className="text-slate-600 text-xs mb-0.5">{combo.produces.join(', ')}</div>
-                  {combo.lines.map((cards, j) => (
-                    <div key={cards.join('+')} className="text-slate-300 font-medium">{cards.join(' + ')}</div>
-                  ))}
-                </div>
+                <details key={`${combo.produces.join('|')}:${i}`} className="text-sm group">
+                  <summary className="cursor-pointer text-slate-400 hover:text-slate-200 select-none flex items-center gap-1.5">
+                    <span className="text-slate-600 text-[10px] group-open:rotate-90 transition-transform inline-block w-2">▶</span>
+                    <span className="text-slate-300 font-medium">{combo.produces.join(', ')}</span>
+                    <span className="text-slate-600 text-xs">· {combo.lines.length} line{combo.lines.length !== 1 ? 's' : ''}</span>
+                  </summary>
+                  <div className="mt-1 ml-4 space-y-0.5">
+                    {combo.lines.map(cards => (
+                      <div key={cards.join('+')} className="text-slate-400 text-xs">{cards.join(' + ')}</div>
+                    ))}
+                  </div>
+                </details>
               ))}
             </div>
           )}
