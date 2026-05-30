@@ -45,7 +45,7 @@ def _wrap_http_error(e: httpx.HTTPStatusError, source: str) -> DeckImportError:
     if code == 404:
         return DeckImportError(f"Deck not found on {source}.", status_code=404)
     if code in (401, 403):
-        return DeckImportError(f"Deck is private on {source}.", status_code=403)
+        return DeckImportError(f"Deck is private on {source}. Set the deck's visibility to Public and try again.", status_code=403)
     return DeckImportError(f"{source} returned an error ({code}). Try again shortly.", status_code=502)
 
 
