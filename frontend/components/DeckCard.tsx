@@ -59,6 +59,15 @@ export interface DeckAnalysis {
   precon_match?: string
   win_conditions: string[]
   _meta?: { cache_hit: boolean; ms: number }
+  _diagnostics?: {
+    interaction: {
+      removal: string[]
+      board_wipes: string[]
+      counterspells: string[]
+      tutors: string[]
+    }
+    wincons: Record<string, string[]>
+  }
 }
 
 export type ColorMode = 'protanopia' | 'deuteranopia' | 'tritanopia'

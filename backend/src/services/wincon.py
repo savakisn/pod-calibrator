@@ -308,12 +308,27 @@ COMMANDER_STRATEGIES: dict[str, list[str]] = {
 }
 
 
+CATEGORY_SETS = {
+    "Stax": STAX,
+    "Aristocrats": ARISTOCRATS,
+    "Reanimator": REANIMATOR,
+    "Voltron": VOLTRON,
+    "Tokens": TOKENS,
+    "Lifegain": LIFEGAIN,
+    "Spellslinger": SPELLSLINGER_PAYOFFS,
+    "Burn": BURN_PAYOFFS | BURN_SPELLS,
+    "Dungeon": DUNGEON_CARDS,
+    "Superfriends": PROLIFERATE_ENABLERS,
+}
+
+
 def detect_win_conditions(
     cards: list,
     card_types: dict,
     combos: list,
     commander_name: str | None = None,
-) -> list:
+) -> tuple[list, dict]:
+    """Returns (wins, diagnostics). Diagnostics maps category -> matched card names."""
     names = {c["name"] for c in cards}
     wins: list[str] = []
 
@@ -381,4 +396,5 @@ def detect_win_conditions(
     if not wins:
         wins.append("Goodstuff")
 
-    return wins
+    diagnostics = {cat: sorted(names & cards_set) for cat, cards_set in CATEGORY_SETS.items() if cat in wins}
+    return wins, diagnostics

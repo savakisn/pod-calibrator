@@ -130,8 +130,18 @@ def _build_analysis(entries: list) -> dict:
     bracket_result = estimate_bracket(commander_names, main_names, avg_cmc)
     speed_result = analyze_speed(cards_data, avg_nonland_cmc)
     cmd_name = next((e["name"] for e in entries if e.get("is_commander")), None)
-    win_conditions = detect_win_conditions(cards_data, type_count, bracket_result.get("combos", []), cmd_name)
+    win_conditions, wincon_diag = detect_win_conditions(cards_data, type_count, bracket_result.get("combos", []), cmd_name)
     interaction = analyze_interaction(cards_data)
+
+    diagnostics = {
+        "interaction": {
+            "removal": interaction.get("removal_cards", []),
+            "board_wipes": interaction.get("board_wipe_cards", []),
+            "counterspells": interaction.get("counterspell_cards", []),
+            "tutors": interaction.get("tutor_cards", []),
+        },
+        "wincons": wincon_diag,
+    }
 
     return {
         "cards": cards_data,
@@ -146,6 +156,7 @@ def _build_analysis(entries: list) -> dict:
         "win_conditions": win_conditions,
         "interaction": interaction,
         "precon_match": None,
+        "_diagnostics": diagnostics,
     }
 
 
