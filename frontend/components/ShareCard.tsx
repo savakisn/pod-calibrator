@@ -128,7 +128,7 @@ const ShareCard = forwardRef<HTMLDivElement, { analysis: DeckAnalysis }>(
               )
             })}
           </div>
-          <span style={{ fontSize: 9, color: '#1e3a5f' }}>pod-calibrator</span>
+          <span style={{ fontSize: 9, color: '#1e3a5f' }}>caliber</span>
         </div>
       </div>
     )

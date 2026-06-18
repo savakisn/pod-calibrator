@@ -3,7 +3,7 @@ import AnalyticsProvider from '@/components/AnalyticsProvider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Pod Calibrator',
+  title: 'Caliber',
   description: 'Commander deck analyzer',
 }
 

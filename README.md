@@ -1,4 +1,4 @@
-# Pod Calibrator
+# Caliber
 
 Commander (MTG) deck analyzer. Paste a Moxfield or Archidekt URL to get a shareable card with bracket, speed tier, win conditions, ramp/removal counts, and mana curve. Add multiple decks for a side-by-side pod comparison and exportable JPEG.
 
