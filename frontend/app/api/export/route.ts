@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Export failed' }, { status: 500 })
   }
   const blob = await res.arrayBuffer()
-  const contentDisposition = res.headers.get('content-disposition') ?? 'attachment; filename="deck-pod-calibrator.jpg"'
+  const contentDisposition = res.headers.get('content-disposition') ?? 'attachment; filename="deck-caliber.jpg"'
   return new NextResponse(blob, {
     headers: {
       'Content-Type': 'image/jpeg',

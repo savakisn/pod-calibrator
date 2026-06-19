@@ -267,7 +267,7 @@ export default function DeckCard({ analysis, colorMode }: { analysis: DeckAnalys
       })
       if (!res.ok) throw new Error('Export failed')
       const blob = await res.blob()
-      const filename = res.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'deck-pod-calibrator.jpg'
+      const filename = res.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'deck-caliber.jpg'
       const file = new File([blob], filename, { type: 'image/jpeg' })
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file] })
